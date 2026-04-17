@@ -144,7 +144,11 @@ if (
     $genset_end_time = validate($_POST["genset_end_time"] ?? "");
     $driver_idNumber = validate($_POST["driver_idNumber"] ?? "");
     $delivered_by_driverIdNumber = validate($_POST["delivered_by_driverIdNumber"] ?? "");
-    $piece_rate = operations_lookup_piece_rate($conn, $segment, $activity);
+    
+    // Lookup piece rates for both empty and loaded segments
+    $piece_rate_empty = operations_lookup_piece_rate($conn, $segment_empty, $activity_empty);
+    $piece_rate_loaded = operations_lookup_piece_rate($conn, $segment, $activity);
+    $piece_rate = (float)$piece_rate_empty + (float)$piece_rate_loaded;
     $route1 = build_rv_route($empty_pullout_location);
     $route2 = build_rv_route($delivered_to);
     $billing_sku = build_rv_billing_sku($shipper, $ph, $route1, $route2);
@@ -186,14 +190,14 @@ if (
 
     if ($response["message"] === "") {
         $sql =
-            "UPDATE operations SET entry_type = ?, segment_empty = ?, activity_empty = ?, segment = ?, activity = ?, remarks = ?, pullout_location_arrival_date = ?, pullout_location_arrival_time = ?, pullout_location_departure_date = ?, pullout_location_departure_time = ?, ph_arrival_date = ?, ph_arrival_time = ?, van_alpha = ?, van_number = ?, van_name = ?, ph = ?, shipper = ?, ecs = ?, tr = ?, gs = ?, waybill = ?, waybill_empty = ?, prime_mover = ?, driver = ?, empty_pullout_location = ?, loaded_van_loading_start_date = ?, loaded_van_loading_start_time = ?, loaded_van_loading_finish_date = ?, loaded_van_loading_finish_time = ?, loaded_van_delivery_departure_date = ?, loaded_van_delivery_departure_time = ?, loaded_van_delivery_arrival_date = ?, loaded_van_delivery_arrival_time = ?, genset_shutoff_date = ?, genset_shutoff_time = ?, end_uploading_date = ?, end_uploading_time = ?, dr_no = ?, load_description = ?, delivered_by_prime_mover = ?, delivered_by_driver = ?, delivered_to = ?, delivered_remarks = ?, genset_hr_meter_start = ?, genset_hr_meter_end = ?, genset_start_date = ?, genset_start_time = ?, genset_end_date = ?, genset_end_time = ?, piece_rate = ?, billing_sku = ?, driver_idNumber = ?, delivered_by_driverIdNumber = ? WHERE entry_id = ?";
+            "UPDATE operations SET entry_type = ?, segment_empty = ?, activity_empty = ?, segment = ?, activity = ?, remarks = ?, pullout_location_arrival_date = ?, pullout_location_arrival_time = ?, pullout_location_departure_date = ?, pullout_location_departure_time = ?, ph_arrival_date = ?, ph_arrival_time = ?, van_alpha = ?, van_number = ?, van_name = ?, ph = ?, shipper = ?, ecs = ?, tr = ?, gs = ?, waybill = ?, waybill_empty = ?, prime_mover = ?, driver = ?, empty_pullout_location = ?, loaded_van_loading_start_date = ?, loaded_van_loading_start_time = ?, loaded_van_loading_finish_date = ?, loaded_van_loading_finish_time = ?, loaded_van_delivery_departure_date = ?, loaded_van_delivery_departure_time = ?, loaded_van_delivery_arrival_date = ?, loaded_van_delivery_arrival_time = ?, genset_shutoff_date = ?, genset_shutoff_time = ?, end_uploading_date = ?, end_uploading_time = ?, dr_no = ?, load_description = ?, delivered_by_prime_mover = ?, delivered_by_driver = ?, delivered_to = ?, delivered_remarks = ?, genset_hr_meter_start = ?, genset_hr_meter_end = ?, genset_start_date = ?, genset_start_time = ?, genset_end_date = ?, genset_end_time = ?, piece_rate_empty = ?, piece_rate_loaded = ?, piece_rate = ?, billing_sku = ?, driver_idNumber = ?, delivered_by_driverIdNumber = ? WHERE entry_id = ?";
         $stmt = $conn->prepare($sql);
 
         if (!$stmt) {
             $response["message"] = "Prepare failed: " . $conn->error;
         } else {
             $stmt->bind_param(
-                str_repeat("s", 52) . "si",
+                str_repeat("s", 54) . "si",
                 $entry_type,
                 $segment_empty,
                 $activity_empty,
@@ -243,6 +247,8 @@ if (
                 $genset_start_time,
                 $genset_end_date,
                 $genset_end_time,
+                $piece_rate_empty,
+                $piece_rate_loaded,
                 $piece_rate,
                 $billing_sku,
                 $driver_idNumber,
@@ -262,6 +268,8 @@ if (
                     "waybill" => $waybill,
                     "driver" => $driver,
                     "remarks" => $remarks,
+                    "piece_rate_empty" => $piece_rate_empty,
+                    "piece_rate_loaded" => $piece_rate_loaded,
                     "piece_rate" => $piece_rate,
                     "billing_sku" => $billing_sku,
                 ];

@@ -67,14 +67,14 @@ $result = $stmt->get_result();
                                 <input type="hidden" id="data_id" name="data_id" value="" />
                                 <div class="row g-3">
                                     <h5>EMPTY CONTAINER VAN</h5>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" hidden>
                                         <div class="mb-3 position-relative">
                                             <label for="segment_empty" class="form-label">Segment</label>
                                             <input type="text" class="form-control" id="segment_empty" name="segment_empty" value="SumiRV" required>
                                             <ul id="segmentEmptyList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" hidden>
                                         <div class="mb-3 position-relative">
                                             <label for="activity_empty" class="form-label">Activity</label>
                                             <input type="text" class="form-control" id="activity_empty" name="activity_empty" required>
@@ -82,7 +82,7 @@ $result = $stmt->get_result();
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="waybill_empty" class="form-label">WAYBILL EMPTY</label>
+                                        <label for="waybill_empty" class="form-label">WAYBILL</label>
                                         <input type="text" class="form-control" id="waybill_empty" name="waybill_empty">
                                     </div>
                                     <div class="col-md-6">
@@ -185,7 +185,7 @@ $result = $stmt->get_result();
                                         <input type="text" class="form-control" id="empty_pullout_location" name="empty_pullout_location">
                                     </div>
                                     <h5>LOADED CONTAINER VAN</h5>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" hidden>
                                         <div class="mb-3 position-relative">
                                             <label for="segment" class="form-label">Segment</label>
                                             <input type="text" class="form-control" id="segment" name="segment" value="SumiRV" required>
@@ -193,7 +193,7 @@ $result = $stmt->get_result();
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="mb-3 position-relative">
+                                        <div class="mb-3 position-relative" hidden>
                                             <label for="activity" class="form-label">Activity</label>
                                             <input type="text" class="form-control" id="activity" name="activity" required>
                                             <ul id="activityList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
@@ -419,6 +419,156 @@ $result = $stmt->get_result();
                 "autoWidth": false,
                 "pageLength": 10,
                 "pagingType": "full_numbers"
+            });
+
+            // Initialize shipper elements
+            const shipperInput = document.getElementById("shipper");
+            const shipperList = document.getElementById("shipperList");
+
+            // Helper function to hide dropdown
+            function hideDropdown(listElem) {
+                if (listElem) {
+                    listElem.style.display = "none";
+                    listElem.innerHTML = "";
+                }
+            }
+
+            // Shipper search functionality
+            let allShippers = [];
+            
+            // Fetch shippers data
+            fetch("php/fetch/get_shippers.php")
+                .then(res => res.json())
+                .then(data => { allShippers = Array.isArray(data) ? data : []; })
+                .catch(() => { allShippers = []; });
+
+            // Show/hide dropdown
+            function showDropdown(listElem) {
+                if (listElem) {
+                    listElem.style.maxHeight = "240px";
+                    listElem.style.overflowY = "auto";
+                    listElem.style.overflowX = "hidden";
+                    listElem.style.display = "block";
+                }
+            }
+
+            // Filter and display shippers
+            shipperInput.addEventListener("input", function() {
+                const searchVal = this.value.toLowerCase();
+                shipperList.innerHTML = "";
+                
+                if (!searchVal) {
+                    hideDropdown(shipperList);
+                    return;
+                }
+                
+                const filtered = allShippers.filter(s => 
+                    (s.shipper || "").toLowerCase().includes(searchVal)
+                );
+                
+                if (filtered.length === 0) {
+                    hideDropdown(shipperList);
+                    return;
+                }
+                
+                filtered.forEach((s, index) => {
+                    const li = document.createElement("li");
+                    li.className = "list-group-item list-group-item-action";
+                    li.textContent = s.shipper;
+                    if (index === 0) li.classList.add("active-suggestion");
+                    shipperList.appendChild(li);
+                });
+                
+                showDropdown(shipperList);
+            });
+
+            // Track current active index
+            let currentActiveIndex = 0;
+
+            // Keyboard navigation for shipper
+            shipperInput.addEventListener("keydown", function(e) {
+                const items = shipperList.querySelectorAll("li");
+                if (items.length === 0) return;
+                
+                // Show dropdown if not visible when using arrow keys
+                if ((e.key === "ArrowDown" || e.key === "ArrowUp") && shipperList.style.display !== "block") {
+                    // Trigger input event to show dropdown
+                    this.dispatchEvent(new Event("input"));
+                    return;
+                }
+                
+                if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    currentActiveIndex = Math.min(currentActiveIndex + 1, items.length - 1);
+                    updateActive(items, currentActiveIndex);
+                } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    currentActiveIndex = Math.max(currentActiveIndex - 1, 0);
+                    updateActive(items, currentActiveIndex);
+                } else if (e.key === "Enter" || e.key === "Tab") {
+                    if (items[currentActiveIndex]) {
+                        e.preventDefault();
+                        const shipperName = items[currentActiveIndex].textContent.trim();
+                        shipperInput.value = shipperName;
+                        updateActivitiesForShipper(shipperName);
+                        hideDropdown(shipperList);
+                        currentActiveIndex = 0;
+                    }
+                }
+            });
+
+            function updateActive(items, index) {
+                items.forEach(item => item.classList.remove("active-suggestion"));
+                if (items[index]) {
+                    items[index].classList.add("active-suggestion");
+                    items[index].scrollIntoView({ block: "nearest" });
+                }
+            }
+
+            // Reset active index when dropdown is hidden or input changes
+            shipperInput.addEventListener("focus", function() {
+                currentActiveIndex = 0;
+            });
+
+            // Shipper to Activities Mapping for Sumi RV
+            function updateActivitiesForShipper(shipper) {
+                const shipperMapping = {
+                    "Sumifru": { empty: "TDC-Sumi.RV.Empty", loaded: "TDC-Sumi.RV.Loaded" },
+                    "Farmind": { empty: "TDC-Joyvio.RV.Empty", loaded: "TDC-Joyvio.RV.Loaded" }
+                };
+                
+                const trimmedShipper = shipper ? shipper.trim() : "";
+                
+                if (trimmedShipper && shipperMapping[trimmedShipper]) {
+                    const activities = shipperMapping[trimmedShipper];
+                    const activityEmptyElem = document.getElementById("activity_empty");
+                    const activityElem = document.getElementById("activity");
+                    
+                    if (activityEmptyElem) {
+                        activityEmptyElem.value = activities.empty;
+                    }
+                    if (activityElem) {
+                        activityElem.value = activities.loaded;
+                    }
+                }
+            }
+
+            // Handle shipper selection from dropdown
+            shipperList.addEventListener("click", function(e) {
+                const item = e.target.closest(".list-group-item");
+                if (item) {
+                    const shipperName = item.textContent.trim();
+                    shipperInput.value = shipperName;
+                    updateActivitiesForShipper(shipperName);
+                    hideDropdown(shipperList);
+                }
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener("mousedown", function(event) {
+                if (!event.target.closest(".position-relative")) {
+                    hideDropdown(shipperList);
+                }
             });
 
             const form = document.getElementById("dataEntryForm");

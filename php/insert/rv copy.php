@@ -132,11 +132,7 @@ if (
     $genset_end_time = validate($_POST["genset_end_time"] ?? "");
     $driver_idNumber = validate($_POST["driver_idNumber"] ?? "");
     $delivered_by_driverIdNumber = validate($_POST["delivered_by_driverIdNumber"] ?? "");
-    
-    // Lookup piece rates for both empty and loaded segments
-    $piece_rate_empty = operations_lookup_piece_rate($conn, $segment_empty, $activity_empty);
-    $piece_rate_loaded = operations_lookup_piece_rate($conn, $segment, $activity);
-    $piece_rate = (float)$piece_rate_empty + (float)$piece_rate_loaded;
+    $piece_rate = operations_lookup_piece_rate($conn, $segment, $activity);
     $route1 = build_rv_route($empty_pullout_location);
     $route2 = build_rv_route($delivered_to);
     $billing_sku = build_rv_billing_sku($shipper, $ph, $route1, $route2);
@@ -237,8 +233,6 @@ if (
             genset_start_time,
             genset_end_date,
             genset_end_time,
-            piece_rate_empty,
-            piece_rate_loaded,
             piece_rate,
             billing_sku,
             created_by,
@@ -251,7 +245,7 @@ if (
             ?,?,?,?,?,?,?,?,?,?,
             ?,?,?,?,?,?,?,?,?,?,
             ?,?,?,?,?,?,?,?,?,?,
-            ?,?,?,?,?,?
+            ?,?,?,?
         )";
 
         $stmt = $conn->prepare($sql);
@@ -259,9 +253,9 @@ if (
         if (!$stmt) {
             $response["message"] = "Prepare failed: " . $conn->error;
         } else {
-            // 56 fields
+            // 54 fields
             $stmt->bind_param(
-                str_repeat("s", 56),
+                str_repeat("s", 54),
 
                 $entry_type,
                 $segment_empty,
@@ -312,8 +306,6 @@ if (
                 $genset_start_time,
                 $genset_end_date,
                 $genset_end_time,
-                $piece_rate_empty,
-                $piece_rate_loaded,
                 $piece_rate,
                 $billing_sku,
                 $created_by,
@@ -336,8 +328,6 @@ if (
                     "waybill" => $waybill,
                     "driver" => $driver,
                     "remarks" => $remarks,
-                    "piece_rate_empty" => $piece_rate_empty,
-                    "piece_rate_loaded" => $piece_rate_loaded,
                     "piece_rate" => $piece_rate,
                     "billing_sku" => $billing_sku,
                 ];

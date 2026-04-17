@@ -59,12 +59,12 @@ $result = mysqli_query($conn, $query);
                             <form id="dataEntryForm">
                                 <input type="hidden" id="data_id" name="data_id" value="">
                                 <div class="row g-3">
-                                    <div class="col-md-6 position-relative">
+                                    <div class="col-md-6 position-relative" hidden>
                                         <label for="segment" class="form-label">Segment</label>
-                                        <input type="text" class="form-control" id="segment" name="segment" required>
+                                        <input type="text" class="form-control" id="segment" name="segment" value="KDS" required>
                                         <ul id="segmentList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                     </div>
-                                    <div class="col-md-6 position-relative">
+                                    <div class="col-md-6 position-relative" hidden>
                                         <label for="activity" class="form-label">Activity</label>
                                         <input type="text" class="form-control" id="activity" name="activity" required>
                                         <ul id="activityList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
@@ -640,12 +640,36 @@ $result = mysqli_query($conn, $query);
                         (location) => location.location_name || '',
                         (name) => {
                             phInput.value = name;
+                            updateActivityForPH(name);
                         }
                     );
                 });
                 attachKeyboardNav(phInput, phList, (name) => {
                     phInput.value = name;
+                    updateActivityForPH(name);
                 });
+                
+                // Update activity when PH changes
+                phInput.addEventListener('change', function() {
+                    updateActivityForPH(this.value);
+                });
+            }
+
+            // Function to update activity based on PH location
+            function updateActivityForPH(ph) {
+                const phMapping = {
+                    "PANTUKAN": "ABC Pan KDs",
+                    "CATEEL": "ABC Cat KDs",
+                    "LUPON": "ABC Lup KDs",
+                    "DONMAR": "ABC DonMar KDs"
+                };
+                
+                const trimmedPH = ph ? ph.trim().toUpperCase() : "";
+                const activity = phMapping[trimmedPH] || "TDC Compound";
+                
+                if (activityInput) {
+                    activityInput.value = activity;
+                }
             }
 
             function resetForm() {
