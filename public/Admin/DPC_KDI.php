@@ -41,7 +41,8 @@ $result = mysqli_query($conn, $query);
                             <a class="btn btn-outline-secondary" href="tdcRv">TDC RV</a>
                             <a class="btn btn-outline-secondary" href="others">Others</a>
                             <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDI & OPM</a>
-                        <a class="btn btn-outline-secondary" href="cargoTruck">Cargo Truck</a>
+                            <a class="btn btn-outline-secondary" href="cargoTruck">Cargo Truck</a>
+                            <a class="btn btn-outline-secondary" href="dryVan">Dry Van</a>
                         </div>
                     </div>
                 </div>

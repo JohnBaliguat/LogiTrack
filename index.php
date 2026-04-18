@@ -46,6 +46,7 @@ function redirectByRole(string $route, string $userType): ?string
         "doleRv" => "public/User/doleRv.php",
         "sumiRv" => "public/User/sumiRv.php",
         "tdcRv" => "public/User/tdcRv.php",
+        "dryVan" => "public/User/dryVan.php",
     ];
 
     $billingSharedRoutes = [
@@ -103,6 +104,7 @@ function isRouteAllowed(string $route, string $userType): bool
             "doleRv",
             "sumiRv",
             "tdcRv",
+            "dryVan",
         ],
         "User" => [
             "dashboard",
@@ -117,6 +119,7 @@ function isRouteAllowed(string $route, string $userType): bool
             "doleRv",
             "sumiRv",
             "tdcRv",
+            "dryVan",
         ],
         "Billing" => ["dashboard", "billing-dashboard", "billing", "profile"],
     ];
@@ -164,6 +167,7 @@ $routes = [
     "doleRv" => "public/Admin/doleRv.php",
     "sumiRv" => "public/Admin/sumiRv.php",
     "tdcRv" => "public/Admin/tdcRv.php",
+    "dryVan" => "public/Admin/dryVan.php",
 ];
 
 if (isLoggedIn()) {

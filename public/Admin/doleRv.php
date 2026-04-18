@@ -34,13 +34,13 @@ $result = $stmt->get_result();
 
             <div class="main-content">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <div class="content-header mb-4">
                             <h2 class="fw-bold">Dole RV Data Entry</h2>
                             <p class="text-muted">Create, view, and manage Dole RV segment entries efficiently.</p>
                         </div>
                     </div>
-                    <div class="col-md-6 text-end">
+                    <div class="col-md-7 text-end">
                         <div class="btn-group" role="group" aria-label="Basic outlined example">
                             <a class="btn btn-outline-secondary" href="abcrv">ABC RV</a>
                             <a class="btn btn-outline-secondary" href="doleRv">Dole RV</a>
@@ -49,6 +49,7 @@ $result = $stmt->get_result();
                             <a class="btn btn-outline-secondary" href="others">Others</a>
                             <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDI & OPM</a>
                             <a class="btn btn-outline-secondary" href="cargoTruck">Cargo Truck</a>
+                            <a class="btn btn-outline-secondary" href="dryVan">Dry Van</a>
                         </div>
                     </div>
                 </div>
