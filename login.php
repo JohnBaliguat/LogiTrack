@@ -15,7 +15,7 @@
                 <div class="login-illustration">
                     <div class="illustration-content">
                         <i class="bi bi-shield-lock-fill mb-4"></i>
-                        <h1>DataEncode System</h1>
+                        <h1>Data Processing System</h1>
                         <p class="lead">Streamline your data encoding process with our advanced management system</p>
                         <div class="feature-list mt-5">
                             <div class="feature-item">

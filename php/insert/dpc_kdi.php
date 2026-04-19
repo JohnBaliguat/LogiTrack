@@ -100,6 +100,13 @@ if (operations_waybill_exists($conn, $waybill)) {
     echo json_encode($response);
     exit();
 }
+if (operations_fgtr_no_exists($conn, $fgtr_no)) {
+    $response["message"] =
+        "This FGTR's NO. is already in use. Please use a different FGTR's NO.";
+    header("Content-Type: application/json");
+    echo json_encode($response);
+    exit();
+}
 if (
     ($e = master_validate_dpc(
         $conn,

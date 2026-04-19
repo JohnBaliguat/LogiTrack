@@ -1,5 +1,6 @@
 <?php
 include "../config/config.php";
+require_once __DIR__ . "/../helpers/waybill_duplicate.php";
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
@@ -53,6 +54,8 @@ if (
         $response["message"] = "Status is required.";
     } elseif (empty($customer_ph)) {
         $response["message"] = "Customer (PH) is required.";
+    } elseif (operations_booking_exists($conn, $booking, $_POST["action"] === "update-dry-van" ? $data_id : null)) {
+        $response["message"] = "This booking is already in use. Please use a different booking.";
     } else {
         if ($_POST["action"] === "add-dry-van") {
             // INSERT

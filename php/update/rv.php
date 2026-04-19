@@ -172,6 +172,9 @@ if (
     } elseif (operations_waybill_exists($conn, $waybill, $data_id)) {
         $response["message"] =
             "This waybill number is already in use. Please use a different waybill.";
+    } elseif (operations_dr_no_exists($conn, $dr_no, $data_id)) {
+        $response["message"] =
+            "This DR. NO. is already in use. Please use a different DR. NO.";
     } elseif (
         ($e = master_validate_rv(
             $conn,

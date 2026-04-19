@@ -34,13 +34,13 @@ $result = $stmt->get_result();
 
             <div class="main-content">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <div class="content-header mb-4">
                             <h2 class="fw-bold">Sumi RV Data Entry</h2>
                             <p class="text-muted">Create, view, and manage Sumi RV segment entries efficiently.</p>
                         </div>
                     </div>
-                    <div class="col-md-6 text-end">
+                    <div class="col-md-7 text-end">
                         <div class="btn-group" role="group" aria-label="Basic outlined example">
                             <a class="btn btn-outline-secondary" href="abcrv">ABC RV</a>
                             <a class="btn btn-outline-secondary" href="doleRv">Dole RV</a>
@@ -365,28 +365,24 @@ $result = $stmt->get_result();
                             <table class="table table-hover align-middle" id="entriesTable">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>
-                                            <input type="checkbox" class="form-check-input" id="selectAll">
-                                        </th>
-                                        <th>ID</th>
-                                        <th>Segment</th>
-                                        <th>Activity</th>
+                                        <th>No</th>
+                                        <th>Date</th>
                                         <th>Waybill</th>
+                                        <th>Van</th>
                                         <th>Driver</th>
                                         <th>Remarks</th>
-                                        <th>Actions</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php while ($row = mysqli_fetch_assoc($result)) { ?>
                                     <tr data-id="<?php echo $row['entry_id']; ?>">
-                                        <td><input type="checkbox" class="form-check-input row-checkbox"></td>
                                         <td><strong>#<?php echo $row['entry_id']; ?></strong></td>
-                                        <td><?php echo $row['segment']; ?></td>
-                                        <td><?php echo $row['activity']; ?></td>
-                                        <td><?php echo $row['waybill']; ?></td>
-                                        <td><?php echo $row['driver']; ?></td>
-                                        <td><?php echo $row['remarks']; ?></td>
+                                        <td><?php echo htmlspecialchars($row['pullout_location_arrival_date'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars(($row['waybill'] ?? '') !== '' ? $row['waybill'] : ($row['waybill_empty'] ?? '')); ?></td>
+                                        <td><?php echo htmlspecialchars(trim(($row['van_alpha'] ?? '') . ' ' . ($row['van_number'] ?? '') . ' ' . ($row['van_name'] ?? ''))); ?></td>
+                                        <td><?php echo htmlspecialchars($row['driver'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($row['remarks'] ?? ''); ?></td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
                                                 <button type="button" class="btn btn-outline-primary btn-edit" title="Edit"><i class="bi bi-pencil"></i></button>
@@ -422,116 +418,211 @@ $result = $stmt->get_result();
                 "pagingType": "full_numbers"
             });
 
-            // Initialize shipper elements
+            const driverInput = document.getElementById("driver");
+            const driverList = document.getElementById("driverList");
+            const driver2Input = document.getElementById("driver2");
+            const driver2List = document.getElementById("driver2List");
+            const driverIdInput = document.getElementById("driver_idNumber");
+            const driverId2Input = document.getElementById("driver_idNumber2");
+            const phInput = document.getElementById("ph");
+            const phList = document.getElementById("phList");
+            const deliveredToInput = document.getElementById("delivered_to");
+            const deliveredToList = document.getElementById("deliveredToList");
+            const truckInput = document.getElementById("prime_mover");
+            const truckList = document.getElementById("truckList");
+            const pm2Input = document.getElementById("pm2");
+            const pm2List = document.getElementById("pm2List");
+            const gensetInput = document.getElementById("gs");
+            const gensetList = document.getElementById("gensetList");
+            const trailerInput = document.getElementById("tr");
+            const trailerList = document.getElementById("trailerList");
             const shipperInput = document.getElementById("shipper");
             const shipperList = document.getElementById("shipperList");
 
-            // Helper function to hide dropdown
-            function hideDropdown(listElem) {
-                if (listElem) {
-                    listElem.style.display = "none";
-                    listElem.innerHTML = "";
-                }
-            }
-
-            // Shipper search functionality
+            let allDrivers = [];
+            let allLocations = [];
+            let allTrucks = [];
+            let allGensets = [];
+            let allTrailers = [];
             let allShippers = [];
-            
-            // Fetch shippers data
+            const allSearchLists = [phList, deliveredToList, driverList, driver2List, truckList, pm2List, gensetList, trailerList, shipperList].filter(Boolean);
+
+            fetch("php/fetch/get_drivers.php")
+                .then(res => res.json())
+                .then(data => { allDrivers = Array.isArray(data) ? data : []; })
+                .catch(() => { allDrivers = []; });
+
+            fetch("php/fetch/get_locations.php")
+                .then(res => res.json())
+                .then(data => { allLocations = Array.isArray(data) ? data : []; })
+                .catch(() => { allLocations = []; });
+
+            fetch("php/fetch/get_trucks.php")
+                .then(res => res.json())
+                .then(data => { allTrucks = Array.isArray(data) ? data : []; })
+                .catch(() => { allTrucks = []; });
+
+            fetch("php/fetch/get_gensets.php")
+                .then(res => res.json())
+                .then(data => { allGensets = Array.isArray(data) ? data : []; })
+                .catch(() => { allGensets = []; });
+
+            fetch("php/fetch/get_trailers.php")
+                .then(res => res.json())
+                .then(data => { allTrailers = Array.isArray(data) ? data : []; })
+                .catch(() => { allTrailers = []; });
+
             fetch("php/fetch/get_shippers.php")
                 .then(res => res.json())
                 .then(data => { allShippers = Array.isArray(data) ? data : []; })
                 .catch(() => { allShippers = []; });
 
-            // Show/hide dropdown
-            function showDropdown(listElem) {
-                if (listElem) {
-                    listElem.style.maxHeight = "240px";
-                    listElem.style.overflowY = "auto";
-                    listElem.style.overflowX = "hidden";
-                    listElem.style.display = "block";
-                }
+            function hideDropdown(listElem) {
+                if (!listElem) return;
+                listElem.style.display = "none";
+                listElem.innerHTML = "";
             }
 
-            // Filter and display shippers
-            shipperInput.addEventListener("input", function() {
-                const searchVal = this.value.toLowerCase();
-                shipperList.innerHTML = "";
-                
+            function showDropdown(listElem) {
+                if (!listElem) return;
+                listElem.style.maxHeight = "240px";
+                listElem.style.overflowY = "auto";
+                listElem.style.overflowX = "hidden";
+                listElem.style.display = "block";
+            }
+
+            function filterDropdown(inputElem, listElem, dataArr, onSelect) {
+                const searchVal = inputElem.value.trim().toLowerCase();
                 if (!searchVal) {
-                    hideDropdown(shipperList);
+                    hideDropdown(listElem);
                     return;
                 }
-                
-                const filtered = allShippers.filter(s => 
-                    (s.shipper || "").toLowerCase().includes(searchVal)
-                );
-                
+
+                listElem.innerHTML = "";
+                const filtered = dataArr.filter(item => String(item).toLowerCase().includes(searchVal));
+
                 if (filtered.length === 0) {
-                    hideDropdown(shipperList);
+                    hideDropdown(listElem);
                     return;
                 }
-                
-                filtered.forEach((s, index) => {
+
+                filtered.forEach((item, index) => {
+                    const label = String(item);
                     const li = document.createElement("li");
                     li.className = "list-group-item list-group-item-action";
-                    li.textContent = s.shipper;
-                    if (index === 0) li.classList.add("active-suggestion");
-                    shipperList.appendChild(li);
+                    li.textContent = label;
+                    li.dataset.pickValue = label;
+
+                    if (index === 0) {
+                        li.classList.add("active-suggestion");
+                    }
+
+                    li.addEventListener("mousedown", function(event) {
+                        event.preventDefault();
+                        onSelect(label);
+                        hideDropdown(listElem);
+                    });
+
+                    listElem.appendChild(li);
                 });
-                
-                showDropdown(shipperList);
-            });
 
-            // Track current active index
-            let currentActiveIndex = 0;
+                showDropdown(listElem);
+            }
 
-            // Keyboard navigation for shipper
-            shipperInput.addEventListener("keydown", function(e) {
-                const items = shipperList.querySelectorAll("li");
-                if (items.length === 0) return;
-                
-                // Show dropdown if not visible when using arrow keys
-                if ((e.key === "ArrowDown" || e.key === "ArrowUp") && shipperList.style.display !== "block") {
-                    // Trigger input event to show dropdown
-                    this.dispatchEvent(new Event("input"));
+            function filterDropdownRecords(inputElem, listElem, records, getValue, formatLine, onPick) {
+                const searchVal = inputElem.value.trim().toLowerCase();
+                if (!searchVal) {
+                    hideDropdown(listElem);
                     return;
                 }
-                
-                if (e.key === "ArrowDown") {
-                    e.preventDefault();
-                    currentActiveIndex = Math.min(currentActiveIndex + 1, items.length - 1);
-                    updateActive(items, currentActiveIndex);
-                } else if (e.key === "ArrowUp") {
-                    e.preventDefault();
-                    currentActiveIndex = Math.max(currentActiveIndex - 1, 0);
-                    updateActive(items, currentActiveIndex);
-                } else if (e.key === "Enter" || e.key === "Tab") {
-                    if (items[currentActiveIndex]) {
-                        e.preventDefault();
-                        const shipperName = items[currentActiveIndex].textContent.trim();
-                        shipperInput.value = shipperName;
-                        updateActivitiesForShipper(shipperName);
-                        hideDropdown(shipperList);
-                        currentActiveIndex = 0;
-                    }
-                }
-            });
 
-            function updateActive(items, index) {
-                items.forEach(item => item.classList.remove("active-suggestion"));
-                if (items[index]) {
-                    items[index].classList.add("active-suggestion");
-                    items[index].scrollIntoView({ block: "nearest" });
+                listElem.innerHTML = "";
+                const filtered = records.filter(record => getValue(record).toLowerCase().includes(searchVal));
+
+                if (filtered.length === 0) {
+                    hideDropdown(listElem);
+                    return;
+                }
+
+                filtered.forEach((record, index) => {
+                    const value = getValue(record);
+                    const li = document.createElement("li");
+                    li.className = "list-group-item list-group-item-action";
+                    li.textContent = formatLine(record);
+                    li.dataset.pickValue = value;
+
+                    if (index === 0) {
+                        li.classList.add("active-suggestion");
+                    }
+
+                    li.addEventListener("mousedown", function(event) {
+                        event.preventDefault();
+                        onPick(value);
+                        hideDropdown(listElem);
+                    });
+
+                    listElem.appendChild(li);
+                });
+
+                showDropdown(listElem);
+            }
+
+            function attachKeyboardNav(inputElem, listElem, onSelect) {
+                if (!inputElem || !listElem) return;
+
+                let activeIndex = 0;
+
+                inputElem.addEventListener("keydown", function(e) {
+                    const items = listElem.querySelectorAll("li");
+
+                    if (e.key === "Escape") {
+                        hideDropdown(listElem);
+                        return;
+                    }
+
+                    if (!items.length) {
+                        return;
+                    }
+
+                    if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        activeIndex = (activeIndex + 1) % items.length;
+                        updateActive(items, activeIndex);
+                    } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        activeIndex = (activeIndex - 1 + items.length) % items.length;
+                        updateActive(items, activeIndex);
+                    } else if (e.key === "Enter") {
+                        const activeItem = items[activeIndex];
+                        if (activeItem) {
+                            e.preventDefault();
+                            onSelect(activeItem.dataset.pickValue || activeItem.textContent);
+                            hideDropdown(listElem);
+                        }
+                    } else if (e.key === "Tab") {
+                        const activeItem = items[activeIndex];
+                        if (activeItem) {
+                            onSelect(activeItem.dataset.pickValue || activeItem.textContent);
+                            hideDropdown(listElem);
+                        } else {
+                            hideDropdown(listElem);
+                        }
+                    }
+                });
+
+                inputElem.addEventListener("input", function() {
+                    activeIndex = 0;
+                });
+
+                function updateActive(items, index) {
+                    items.forEach(item => item.classList.remove("active-suggestion"));
+                    if (items[index]) {
+                        items[index].classList.add("active-suggestion");
+                        items[index].scrollIntoView({ block: "nearest" });
+                    }
                 }
             }
 
-            // Reset active index when dropdown is hidden or input changes
-            shipperInput.addEventListener("focus", function() {
-                currentActiveIndex = 0;
-            });
-
-            // Shipper to Activities Mapping for Sumi RV
             function updateActivitiesForShipper(shipper) {
                 const shipperMapping = {
                     "Sumifru": { empty: "TDC-Sumi.RV.Empty", loaded: "TDC-Sumi.RV.Loaded" },
@@ -554,22 +645,134 @@ $result = $stmt->get_result();
                 }
             }
 
-            // Handle shipper selection from dropdown
-            shipperList.addEventListener("click", function(e) {
-                const item = e.target.closest(".list-group-item");
-                if (item) {
-                    const shipperName = item.textContent.trim();
-                    shipperInput.value = shipperName;
-                    updateActivitiesForShipper(shipperName);
-                    hideDropdown(shipperList);
-                }
+            if (driverInput && driverList) {
+                driverInput.addEventListener("input", function() {
+                    driverIdInput.value = "";
+                    filterDropdown(this, driverList, allDrivers.map(d => d.name || ""), (name) => {
+                        driverInput.value = name;
+                        const selected = allDrivers.find(d => d.name === name);
+                        driverIdInput.value = selected ? selected.id : "";
+                    });
+                });
+            }
+
+            if (driver2Input && driver2List) {
+                driver2Input.addEventListener("input", function() {
+                    driverId2Input.value = "";
+                    filterDropdown(this, driver2List, allDrivers.map(d => d.name || ""), (name) => {
+                        driver2Input.value = name;
+                        const selected = allDrivers.find(d => d.name === name);
+                        driverId2Input.value = selected ? selected.id : "";
+                    });
+                });
+            }
+
+            if (phInput && phList) {
+                phInput.addEventListener("input", function() {
+                    filterDropdownRecords(this, phList, allLocations, (loc) => loc.location_name || "", (loc) => loc.location_name || "", (name) => {
+                        phInput.value = name;
+                    });
+                });
+            }
+
+            if (deliveredToInput && deliveredToList) {
+                deliveredToInput.addEventListener("input", function() {
+                    filterDropdownRecords(this, deliveredToList, allLocations, (loc) => loc.location_name || "", (loc) => loc.location_name || "", (name) => {
+                        deliveredToInput.value = name;
+                    });
+                });
+            }
+
+            if (truckInput && truckList) {
+                truckInput.addEventListener("input", function() {
+                    filterDropdown(this, truckList, allTrucks, (name) => {
+                        truckInput.value = name;
+                    });
+                });
+            }
+
+            if (pm2Input && pm2List) {
+                pm2Input.addEventListener("input", function() {
+                    filterDropdown(this, pm2List, allTrucks, (name) => {
+                        pm2Input.value = name;
+                    });
+                });
+            }
+
+            if (gensetInput && gensetList) {
+                gensetInput.addEventListener("input", function() {
+                    filterDropdownRecords(this, gensetList, allGensets, (unit) => unit.unit_name || "", (unit) => {
+                        const bits = [unit.unit_name];
+                        if (unit.unit_model) bits.push(unit.unit_model);
+                        if (unit.unit_cluster) bits.push(unit.unit_cluster);
+                        return bits.join(" - ");
+                    }, (name) => {
+                        gensetInput.value = name;
+                    });
+                });
+            }
+
+            if (trailerInput && trailerList) {
+                trailerInput.addEventListener("input", function() {
+                    filterDropdownRecords(this, trailerList, allTrailers, (trailer) => trailer.trailer_name || "", (trailer) => trailer.trailer_name || "", (name) => {
+                        trailerInput.value = name;
+                    });
+                });
+            }
+
+            if (shipperInput && shipperList) {
+                shipperInput.addEventListener("input", function() {
+                    filterDropdownRecords(this, shipperList, allShippers, (shipper) => shipper.shipper || "", (shipper) => shipper.shipper || "", (name) => {
+                        shipperInput.value = name;
+                        updateActivitiesForShipper(name);
+                    });
+                });
+            }
+
+            document.addEventListener("mousedown", function(event) {
+                if (event.target.closest(".position-relative")) return;
+                allSearchLists.forEach(hideDropdown);
             });
 
-            // Close dropdown when clicking outside
-            document.addEventListener("mousedown", function(event) {
-                if (!event.target.closest(".position-relative")) {
-                    hideDropdown(shipperList);
-                }
+            attachKeyboardNav(driverInput, driverList, (name) => {
+                driverInput.value = name;
+                const selected = allDrivers.find(d => d.name === name);
+                driverIdInput.value = selected ? selected.id : "";
+            });
+
+            attachKeyboardNav(driver2Input, driver2List, (name) => {
+                driver2Input.value = name;
+                const selected = allDrivers.find(d => d.name === name);
+                driverId2Input.value = selected ? selected.id : "";
+            });
+
+            attachKeyboardNav(phInput, phList, (name) => {
+                phInput.value = name;
+            });
+
+            attachKeyboardNav(deliveredToInput, deliveredToList, (name) => {
+                deliveredToInput.value = name;
+            });
+
+            attachKeyboardNav(truckInput, truckList, (name) => {
+                truckInput.value = name;
+            });
+
+            attachKeyboardNav(pm2Input, pm2List, (name) => {
+                pm2Input.value = name;
+            });
+
+            attachKeyboardNav(gensetInput, gensetList, (name) => {
+                gensetInput.value = name;
+            });
+
+            attachKeyboardNav(trailerInput, trailerList, (name) => {
+                trailerInput.value = name;
+            });
+
+            attachKeyboardNav(shipperInput, shipperList, (name) => {
+                shipperInput.value = name;
+                updateActivitiesForShipper(name);
             });
 
             const form = document.getElementById("dataEntryForm");

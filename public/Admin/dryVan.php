@@ -72,13 +72,15 @@ $result = mysqli_query($conn, $query);
                                                 <input type="text" class="form-control" id="customer_ph" name="customer_ph" required>
                                                 <ul id="customerList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                             </div>
-                                            <div class="col-md-6">
+                                            <div class="col-md-6 position-relative">
                                                 <label for="delivered_to" class="form-label">Delivery Location</label>
                                                 <input type="text" class="form-control" id="delivered_to" name="delivered_to">
+                                                <ul id="deliveredToList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                             </div>
-                                            <div class="col-md-6">
+                                            <div class="col-md-6 position-relative">
                                                 <label for="return_location" class="form-label">Return Location</label>
                                                 <input type="text" class="form-control" id="return_location" name="return_location">
+                                                <ul id="returnLocationList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                             </div>
                                             <div class="col-md-6">
                                                 <label for="size" class="form-label">Size</label>
@@ -198,14 +200,13 @@ $result = mysqli_query($conn, $query);
                                     <table class="table table-hover align-middle" id="entriesTable">
                                         <thead class="table-light">
                                             <tr>
-                                                <th>ID</th>
-                                                <th>Status</th>
-                                                <th>Customer</th>
+                                                <th>No</th>
+                                                <th>Date</th>
                                                 <th>Waybill</th>
+                                                <th>Van</th>
                                                 <th>Driver</th>
-                                                <th>Truck</th>
-                                                <th>Booking</th>
-                                                <th>Actions</th>
+                                                <th>Remarks</th>
+                                                <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -213,12 +214,11 @@ $result = mysqli_query($conn, $query);
                                                 <?php while ($row = mysqli_fetch_assoc($result)): ?>
                                                     <tr>
                                                         <td><?php echo htmlspecialchars($row['entry_id']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['status'] ?? ''); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['customer_ph'] ?? ''); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['waybill'] ?? $row['waybill_empty'] ?? ''); ?></td>
+                                                        <td><?php echo htmlspecialchars(($row['date_hauled'] ?? '') !== '' ? $row['date_hauled'] : ($row['date_returned'] ?? '')); ?></td>
+                                                        <td><?php echo htmlspecialchars(($row['waybill'] ?? '') !== '' ? $row['waybill'] : ($row['waybill_empty'] ?? '')); ?></td>
+                                                        <td><?php echo htmlspecialchars(($row['tr'] ?? '') !== '' ? $row['tr'] : ($row['truck'] ?? '')); ?></td>
                                                         <td><?php echo htmlspecialchars($row['driver'] ?? ''); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['truck'] ?? ''); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['booking'] ?? ''); ?></td>
+                                                        <td><?php echo htmlspecialchars(($row['remarks'] ?? '') !== '' ? $row['remarks'] : ($row['delivered_remarks'] ?? '')); ?></td>
                                                         <td>
                                                             <button class="btn btn-sm btn-info edit-btn" data-id="<?php echo $row['entry_id']; ?>"><i class="bi bi-pencil"></i></button>
                                                             <button class="btn btn-sm btn-danger delete-btn" data-id="<?php echo $row['entry_id']; ?>"><i class="bi bi-trash"></i></button>
@@ -227,7 +227,7 @@ $result = mysqli_query($conn, $query);
                                                 <?php endwhile; ?>
                                             <?php else: ?>
                                                 <tr>
-                                                    <td colspan="8" class="text-center text-muted">No entries found for today</td>
+                                                    <td colspan="7" class="text-center text-muted">No entries found for today</td>
                                                 </tr>
                                             <?php endif; ?>
                                         </tbody>
@@ -256,6 +256,10 @@ $result = mysqli_query($conn, $query);
 
             const customerPhInput = document.getElementById("customer_ph");
             const customerList = document.getElementById("customerList");
+            const deliveredToInput = document.getElementById("delivered_to");
+            const deliveredToList = document.getElementById("deliveredToList");
+            const returnLocationInput = document.getElementById("return_location");
+            const returnLocationList = document.getElementById("returnLocationList");
             const driverInput = document.getElementById("driver");
             const driverList = document.getElementById("driverList");
             const driverReturnInput = document.getElementById("driver_return");
@@ -313,7 +317,7 @@ $result = mysqli_query($conn, $query);
 
             // Generic filter function
             function filterAndDisplay(input, listElem, dataArray, getDisplay, onSelect) {
-                const searchVal = input.value.toLowerCase();
+                const searchVal = input.value.trim().toLowerCase();
                 listElem.innerHTML = "";
                 
                 if (!searchVal) {
@@ -333,9 +337,12 @@ $result = mysqli_query($conn, $query);
                 filtered.forEach((item, index) => {
                     const li = document.createElement("li");
                     li.className = "list-group-item list-group-item-action";
-                    li.textContent = getDisplay(item);
+                    const display = getDisplay(item);
+                    li.textContent = display;
+                    li.dataset.pickValue = display;
                     if (index === 0) li.classList.add("active-suggestion");
-                    li.addEventListener("click", () => {
+                    li.addEventListener("mousedown", (event) => {
+                        event.preventDefault();
                         onSelect(item);
                         hideDropdown(listElem);
                     });
@@ -343,6 +350,62 @@ $result = mysqli_query($conn, $query);
                 });
                 
                 showDropdown(listElem);
+            }
+
+            function attachKeyboardNav(inputElem, listElem, onSelect) {
+                if (!inputElem || !listElem) return;
+
+                let activeIndex = 0;
+
+                inputElem.addEventListener("keydown", function(e) {
+                    const items = listElem.querySelectorAll("li");
+
+                    if (e.key === "Escape") {
+                        hideDropdown(listElem);
+                        return;
+                    }
+
+                    if (!items.length) {
+                        return;
+                    }
+
+                    if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        activeIndex = (activeIndex + 1) % items.length;
+                        updateActive(items, activeIndex);
+                    } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        activeIndex = (activeIndex - 1 + items.length) % items.length;
+                        updateActive(items, activeIndex);
+                    } else if (e.key === "Enter") {
+                        const activeItem = items[activeIndex];
+                        if (activeItem) {
+                            e.preventDefault();
+                            onSelect(activeItem.dataset.pickValue || activeItem.textContent);
+                            hideDropdown(listElem);
+                        }
+                    } else if (e.key === "Tab") {
+                        const activeItem = items[activeIndex];
+                        if (activeItem) {
+                            onSelect(activeItem.dataset.pickValue || activeItem.textContent);
+                            hideDropdown(listElem);
+                        } else {
+                            hideDropdown(listElem);
+                        }
+                    }
+                });
+
+                inputElem.addEventListener("input", function() {
+                    activeIndex = 0;
+                });
+
+                function updateActive(items, index) {
+                    items.forEach(item => item.classList.remove("active-suggestion"));
+                    if (items[index]) {
+                        items[index].classList.add("active-suggestion");
+                        items[index].scrollIntoView({ block: "nearest" });
+                    }
+                }
             }
 
             // Customer PH
@@ -353,24 +416,40 @@ $result = mysqli_query($conn, $query);
                 );
             });
 
+            deliveredToInput.addEventListener("input", function() {
+                filterAndDisplay(this, deliveredToList, allCustomers,
+                    loc => loc.location_name || "",
+                    item => { deliveredToInput.value = item.location_name; }
+                );
+            });
+
+            returnLocationInput.addEventListener("input", function() {
+                filterAndDisplay(this, returnLocationList, allCustomers,
+                    loc => loc.location_name || "",
+                    item => { returnLocationInput.value = item.location_name; }
+                );
+            });
+
             // Driver (Loaded Export)
             driverInput.addEventListener("input", function() {
+                document.getElementById("driver_idNumber").value = "";
                 filterAndDisplay(this, driverList, allDrivers,
-                    drv => drv.driver_name || "",
+                    drv => drv.name || "",
                     item => {
-                        driverInput.value = item.driver_name;
-                        document.getElementById("driver_idNumber").value = item.driver_idNumber || "";
+                        driverInput.value = item.name || "";
+                        document.getElementById("driver_idNumber").value = item.id || "";
                     }
                 );
             });
 
             // Driver (Empty Import)
             driverReturnInput.addEventListener("input", function() {
+                document.getElementById("driver_return_idNumber").value = "";
                 filterAndDisplay(this, driverReturnList, allDrivers,
-                    drv => drv.driver_name || "",
+                    drv => drv.name || "",
                     item => {
-                        driverReturnInput.value = item.driver_name;
-                        document.getElementById("driver_return_idNumber").value = item.driver_idNumber || "";
+                        driverReturnInput.value = item.name || "";
+                        document.getElementById("driver_return_idNumber").value = item.id || "";
                     }
                 );
             });
@@ -378,16 +457,16 @@ $result = mysqli_query($conn, $query);
             // Truck (Loaded Export)
             truckInput.addEventListener("input", function() {
                 filterAndDisplay(this, truckList, allTrucks,
-                    trk => trk.truck_name || "",
-                    item => { truckInput.value = item.truck_name; }
+                    trk => trk || "",
+                    item => { truckInput.value = item || ""; }
                 );
             });
 
             // Truck (Empty Import)
             truckReturnInput.addEventListener("input", function() {
                 filterAndDisplay(this, truckReturnList, allTrucks,
-                    trk => trk.truck_name || "",
-                    item => { truckReturnInput.value = item.truck_name; }
+                    trk => trk || "",
+                    item => { truckReturnInput.value = item || ""; }
                 );
             });
 
@@ -402,8 +481,44 @@ $result = mysqli_query($conn, $query);
             // Close dropdowns when clicking outside
             document.addEventListener("mousedown", function(event) {
                 if (!event.target.closest(".position-relative")) {
-                    [customerList, driverList, driverReturnList, truckList, truckReturnList, trList].forEach(hideDropdown);
+                    [customerList, deliveredToList, returnLocationList, driverList, driverReturnList, truckList, truckReturnList, trList].forEach(hideDropdown);
                 }
+            });
+
+            attachKeyboardNav(customerPhInput, customerList, (value) => {
+                customerPhInput.value = value;
+            });
+
+            attachKeyboardNav(deliveredToInput, deliveredToList, (value) => {
+                deliveredToInput.value = value;
+            });
+
+            attachKeyboardNav(returnLocationInput, returnLocationList, (value) => {
+                returnLocationInput.value = value;
+            });
+
+            attachKeyboardNav(driverInput, driverList, (value) => {
+                driverInput.value = value;
+                const selected = allDrivers.find(item => item.name === value);
+                document.getElementById("driver_idNumber").value = selected ? selected.id : "";
+            });
+
+            attachKeyboardNav(driverReturnInput, driverReturnList, (value) => {
+                driverReturnInput.value = value;
+                const selected = allDrivers.find(item => item.name === value);
+                document.getElementById("driver_return_idNumber").value = selected ? selected.id : "";
+            });
+
+            attachKeyboardNav(truckInput, truckList, (value) => {
+                truckInput.value = value;
+            });
+
+            attachKeyboardNav(truckReturnInput, truckReturnList, (value) => {
+                truckReturnInput.value = value;
+            });
+
+            attachKeyboardNav(trInput, trList, (value) => {
+                trInput.value = value;
             });
 
             // Form submission

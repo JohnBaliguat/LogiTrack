@@ -27,13 +27,13 @@ $result = mysqli_query($conn, $query);
 
             <div class="main-content">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <div class="content-header mb-4">
                             <h2 class="fw-bold">DPC KDI & OPM Data Entry</h2>
                             <p class="text-muted">Create, view, and manage DPC KDI & OPM data entries efficiently.</p>
                         </div>
                     </div>
-                    <div class="col-md-6 text-end">
+                    <div class="col-md-7 text-end">
                         <div class="btn-group" role="group" aria-label="Basic outlined example">
                             <a class="btn btn-outline-secondary" href="abcrv">ABC RV</a>
                             <a class="btn btn-outline-secondary" href="doleRv">Dole RV</a>
@@ -201,28 +201,24 @@ $result = mysqli_query($conn, $query);
                             <table class="table table-hover align-middle" id="entriesTable">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>
-                                            <input type="checkbox" class="form-check-input" id="selectAll">
-                                        </th>
-                                        <th>ID</th>
-                                        <th>Segment</th>
-                                        <th>Activity</th>
+                                        <th>No</th>
+                                        <th>Date</th>
                                         <th>Waybill</th>
+                                        <th>Van</th>
                                         <th>Driver</th>
                                         <th>Remarks</th>
-                                        <th>Actions</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php while ($row = mysqli_fetch_assoc($result)) { ?>
                                     <tr data-id="<?php echo $row['entry_id']; ?>" data-segment="<?php echo htmlspecialchars($row['segment']); ?>" data-activity="<?php echo htmlspecialchars($row['activity']); ?>" data-waybill="<?php echo htmlspecialchars($row['waybill']); ?>" data-driver="<?php echo htmlspecialchars($row['driver']); ?>" data-remarks="<?php echo htmlspecialchars($row['remarks']); ?>">
-                                        <td><input type="checkbox" class="form-check-input row-checkbox"></td>
                                         <td><strong>#<?php echo $row['entry_id']; ?></strong></td>
-                                        <td><?php echo $row['segment']; ?></td>
-                                        <td><?php echo $row['activity']; ?></td>
-                                        <td><?php echo $row['waybill']; ?></td>
-                                        <td><?php echo $row['driver']; ?></td>
-                                        <td><?php echo $row['remarks']; ?></td>
+                                        <td><?php echo htmlspecialchars(($row['dpc_date'] ?? '') !== '' ? $row['dpc_date'] : ($row['waybill_date'] ?? '')); ?></td>
+                                        <td><?php echo htmlspecialchars($row['waybill'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($row['truck'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($row['driver'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($row['remarks'] ?? ''); ?></td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
                                                 <button class="btn btn-outline-primary btn-edit" title="Edit"><i class="bi bi-pencil"></i></button>
