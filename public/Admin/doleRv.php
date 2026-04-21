@@ -1,11 +1,13 @@
 <?php 
 include "php/session-check.php"; 
 include "php/config/config.php";
+include_once "php/helpers/entry_date_filter.php";
 
 $segment_filter = "DoleRV";
-$query = "SELECT entry_id, entry_type, segment_empty, activity_empty, segment, activity, remarks, pullout_location_arrival_date, pullout_location_arrival_time, pullout_location_departure_date, pullout_location_departure_time, ph_arrival_date, ph_arrival_time, van_alpha, van_number, van_name, ph, shipper, ecs, tr, gs, waybill, waybill_empty, prime_mover, driver, empty_pullout_location, loaded_van_loading_start_date, loaded_van_loading_start_time, loaded_van_loading_finish_date, loaded_van_loading_finish_time, loaded_van_delivery_departure_date, loaded_van_delivery_departure_time, loaded_van_delivery_arrival_date, loaded_van_delivery_arrival_time, genset_shutoff_date, genset_shutoff_time, end_uploading_date, end_uploading_time, dr_no, load_description, delivered_by_prime_mover, delivered_by_driver, delivered_to, delivered_remarks, genset_hr_meter_start, genset_hr_meter_end, genset_start_date, genset_start_time, genset_end_date, genset_end_time FROM operations WHERE entry_type = 'RV ENTRY' AND segment = ? AND DATE(created_date) = CURDATE() ORDER BY entry_id DESC";
+$selectedEntryDate = getSelectedEntryDate();
+$query = "SELECT entry_id, entry_type, segment_empty, activity_empty, segment, activity, remarks, created_date, pullout_location_arrival_date, pullout_location_arrival_time, pullout_location_departure_date, pullout_location_departure_time, ph_arrival_date, ph_arrival_time, van_alpha, van_number, van_name, ph, shipper, ecs, tr, gs, waybill, waybill_empty, prime_mover, driver, empty_pullout_location, loaded_van_loading_start_date, loaded_van_loading_start_time, loaded_van_loading_finish_date, loaded_van_loading_finish_time, loaded_van_delivery_departure_date, loaded_van_delivery_departure_time, loaded_van_delivery_arrival_date, loaded_van_delivery_arrival_time, delivery_location_arrival_date, delivery_location_arrival_time, genset_shutoff_date, genset_shutoff_time, end_uploading_date, end_uploading_time, end_unloading_start_date, end_unloading_start_time, end_unloading_finish_date, end_unloading_finish_time, dr_no, load_description, delivered_by_prime_mover, delivered_by_driver, delivered_to, delivered_remarks, genset_hr_meter_start, genset_hr_meter_end, genset_start_date, genset_start_time, genset_end_date, genset_end_time FROM operations WHERE entry_type = 'RV ENTRY' AND segment = ? AND DATE(created_date) = ? ORDER BY entry_id DESC";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("s", $segment_filter);
+$stmt->bind_param("ss", $segment_filter, $selectedEntryDate);
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
@@ -44,8 +46,8 @@ $result = $stmt->get_result();
                         <div class="btn-group" role="group" aria-label="Basic outlined example">
                             <a class="btn btn-outline-secondary" href="abcrv">ABC RV</a>
                             <a class="btn btn-outline-secondary" href="doleRv">Dole RV</a>
-                            <a class="btn btn-outline-secondary" href="sumiRv">Sumi RV</a>
-                            <a class="btn btn-outline-secondary" href="tdcRv">TDC RV</a>
+                            <a class="btn btn-outline-secondary" href="sumiRv">Sumi/Farmined RV</a>
+                            <a class="btn btn-outline-secondary" href="tdcRv">TDC/Good Farmer RV</a>
                             <a class="btn btn-outline-secondary" href="others">Others</a>
                             <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDI & OPM</a>
                             <a class="btn btn-outline-secondary" href="cargoTruck">Cargo Truck</a>
@@ -82,7 +84,7 @@ $result = $stmt->get_result();
                                             <ul id="activityEmptyList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <label for="waybill_empty" class="form-label">WAYBILL</label>
                                         <input type="text" class="form-control" id="waybill_empty" name="waybill_empty">
                                     </div>
@@ -110,6 +112,14 @@ $result = $stmt->get_result();
                                         <label for="ph_arrival_time" class="form-label">PH Arrival Time</label>
                                         <input type="text" class="form-control" id="ph_arrival_time" name="ph_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
                                     </div>
+                                    <div class="col-md-6">
+                                        <label for="delivery_location_arrival_date" class="form-label">DELIVERY LOCATION - ARRIVAL DATE</label>
+                                        <input type="text" class="form-control" id="delivery_location_arrival_date" name="delivery_location_arrival_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="delivery_location_arrival_time" class="form-label">DELIVERY LOCATION - ARRIVAL TIME</label>
+                                        <input type="text" class="form-control" id="delivery_location_arrival_time" name="delivery_location_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
+                                    </div>
                                     <div class="col-md-12">
                                         <label for="van_alpha" class="form-label">VAN - ALPHA</label>
                                         <input type="text" class="form-control" id="van_alpha" name="van_alpha">
@@ -118,19 +128,8 @@ $result = $stmt->get_result();
                                         <label for="van_number" class="form-label">VAN - NUMBER</label>
                                         <input type="text" class="form-control" id="van_number" name="van_number">
                                     </div>
+                                    
                                     <div class="col-md-12">
-                                        <label for="empty_container_van" class="form-label">EMPTY CONTAINER VAN (WITHDRAWAL)</label>
-                                        <input type="text" class="form-control" id="empty_container_van" name="empty_container_van">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="withdrawal_date" class="form-label">DATE</label>
-                                        <input type="text" class="form-control" id="withdrawal_date" name="withdrawal_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="withdrawal_time" class="form-label">TIME</label>
-                                        <input type="text" class="form-control" id="withdrawal_time" name="withdrawal_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
-                                    </div>
-                                    <div class="col-md-6">
                                         <label for="van_name" class="form-label">VAN NAME</label>
                                         <input type="text" class="form-control" id="van_name" name="van_name">
                                     </div>
@@ -184,9 +183,13 @@ $result = $stmt->get_result();
                                         </div>
 
                                     </div>
-                                    <div class="col-md-12">
-                                        <label for="empty_pullout_location" class="form-label">EMPTY PULLOUT LOCATION</label>
-                                        <input type="text" class="form-control" id="empty_pullout_location" name="empty_pullout_location">
+                                    <div class="col-md-6">
+                                        <div class="mb-3 position-relative">
+                                            <label for="empty_pullout_location" class="form-label">EMPTY PULL-OUT LOCATION</label>
+                                            <input type="text" class="form-control" id="empty_pullout_location" name="empty_pullout_location" autocomplete="off">
+                                            <ul id="emptyPulloutLocationList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1010; display: none; max-height: 240px; overflow-y: auto;"></ul>
+                                        </div>
+
                                     </div>
                                     <h5>LOADED CONTAINER VAN</h5>
                                     <div class="col-md-6" hidden>
@@ -203,7 +206,7 @@ $result = $stmt->get_result();
                                             <ul id="activityList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <label for="waybill" class="form-label">WAYBILL</label>
                                         <input type="text" class="form-control" id="waybill" name="waybill" required>
                                     </div>
@@ -240,22 +243,6 @@ $result = $stmt->get_result();
                                         <input type="text" class="form-control" id="delivery_arrival_time" name="delivery_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="genset_shut_off_start_date" class="form-label">GENSET SHUT OFF START DATE</label>
-                                        <input type="text" class="form-control" id="genset_shut_off_start_date" name="genset_shut_off_start_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="genset_shut_off_start_time" class="form-label">GENSET SHUT OFF START TIME</label>
-                                        <input type="text" class="form-control" id="genset_shut_off_start_time" name="genset_shut_off_start_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="genset_shut_off_finish_date" class="form-label">GENSET SHUT OFF FINISH DATE</label>
-                                        <input type="text" class="form-control" id="genset_shut_off_finish_date" name="genset_shut_off_finish_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="genset_shut_off_finish_time" class="form-label">GENSET SHUT OFF FINISH TIME</label>
-                                        <input type="text" class="form-control" id="genset_shut_off_finish_time" name="genset_shut_off_finish_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
-                                    </div>
-                                    <div class="col-md-6">
                                         <label for="end_unloading_start_date" class="form-label">END OF UNLOADING START DATE</label>
                                         <input type="text" class="form-control" id="end_unloading_start_date" name="end_unloading_start_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
                                     </div>
@@ -263,11 +250,11 @@ $result = $stmt->get_result();
                                         <label for="end_unloading_start_time" class="form-label">END OF UNLOADING START TIME</label>
                                         <input type="text" class="form-control" id="end_unloading_start_time" name="end_unloading_start_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" hidden>
                                         <label for="end_unloading_finish_date" class="form-label">END OF UNLOADING FINISH DATE</label>
                                         <input type="text" class="form-control" id="end_unloading_finish_date" name="end_unloading_finish_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" hidden>
                                         <label for="end_unloading_finish_time" class="form-label">END OF UNLOADING FINISH TIME</label>
                                         <input type="text" class="form-control" id="end_unloading_finish_time" name="end_unloading_finish_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
                                     </div>
@@ -309,7 +296,8 @@ $result = $stmt->get_result();
                                         <label for="remarks" class="form-label">REMARKS</label>
                                         <textarea class="form-control" id="remarks" name="remarks" rows="3"></textarea>
                                     </div>
-                                    <div class="col-md-12">
+                                    <h5>GENSET HR METER</h5>
+                                    <div class="col-md-12" hidden>
                                         <label for="genset_hr_meter" class="form-label">GENSET HR METER</label>
                                         <input type="text" class="form-control" id="genset_hr_meter" name="genset_hr_meter">
                                     </div>
@@ -383,6 +371,7 @@ $result = $stmt->get_result();
                         </div>
                     </div>
                     <div class="card-body">
+                        <?php renderEntryDateFilter($selectedEntryDate); ?>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle" id="entriesTable">
                                 <thead class="table-light">
@@ -400,12 +389,11 @@ $result = $stmt->get_result();
                                     <?php while ($row = mysqli_fetch_assoc($result)) { ?>
                                     <tr data-id="<?php echo $row['entry_id']; ?>" data-segment="<?php echo htmlspecialchars($row['segment']); ?>" data-activity="<?php echo htmlspecialchars($row['activity']); ?>" data-waybill="<?php echo htmlspecialchars($row['waybill']); ?>" data-driver="<?php echo htmlspecialchars($row['driver']); ?>" data-remarks="<?php echo htmlspecialchars($row['remarks']); ?>">
                                         <td><strong>#<?php echo $row['entry_id']; ?></strong></td>
-                                        <td><?php echo htmlspecialchars($row['pullout_location_arrival_date'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($row['created_date'] ? date('m/d/Y', strtotime($row['created_date'])) : ''); ?></td>
                                         <td><?php echo htmlspecialchars(($row['waybill'] ?? '') !== '' ? $row['waybill'] : ($row['waybill_empty'] ?? '')); ?></td>
                                         <td><?php echo htmlspecialchars(trim(($row['van_alpha'] ?? '') . ' ' . ($row['van_number'] ?? '') . ' ' . ($row['van_name'] ?? ''))); ?></td>
                                         <td><?php echo htmlspecialchars($row['driver'] ?? ''); ?></td>
                                         <td><?php echo htmlspecialchars($row['remarks'] ?? ''); ?></td>
-                                        <td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
                                                 <button type="button" class="btn btn-outline-primary btn-edit" title="Edit"><i class="bi bi-pencil"></i></button>
@@ -430,10 +418,123 @@ $result = $stmt->get_result();
     <script src="assets/js/app.js"></script>
     <script src="assets/alert/node_modules/sweetalert2/dist/sweetalert2.min.js"></script>
     <script>
-         $(document).ready(function () {
+        // Helper function to convert YYYY-MM-DD to MM/DD/YYYY
+        function formatDateForDisplay(dbDate) {
+            if (!dbDate || dbDate === '') return '';
+            const match = dbDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (!match) return dbDate;
+            return `${match[2]}/${match[3]}/${match[1]}`;
+        }
+
+        // Helper function to convert HH:MM:SS or HH:MM to HH:MM format
+        function formatTimeForDisplay(dbTime) {
+            if (!dbTime || dbTime === '') return '';
+            const match = dbTime.match(/^(\d{2}):(\d{2})/);
+            if (!match) return dbTime;
+            return match[1] + ':' + match[2];
+        }
+
+        // Fill form from fetched record with formatting
+        function fillFormFromRecord(record) {
+            document.getElementById("data_id").value = record.entry_id || '';
+            
+            const dateFields = ['pullout_location_arrival_date', 'pullout_location_departure_date', 'ph_arrival_date', 'delivery_location_arrival_date', 'loading_start_date', 'loading_finish_date', 'delivery_departure_date', 'delivery_arrival_date', 'end_unloading_start_date', 'end_unloading_finish_date', 'gs_start_date', 'gs_end_date'];
+            const timeFields = ['pullout_location_arrival_time', 'pullout_location_departure_time', 'ph_arrival_time', 'delivery_location_arrival_time', 'loading_start_time', 'loading_finish_time', 'delivery_departure_time', 'delivery_arrival_time', 'end_unloading_start_time', 'end_unloading_finish_time', 'gs_start_time', 'gs_end_time'];
+
+            const fieldMap = {
+                segment_empty: 'segment_empty',
+                activity_empty: 'activity_empty',
+                segment: 'segment',
+                activity: 'activity',
+                remarks: 'remarks',
+                pullout_location_arrival_date: 'pullout_location_arrival_date',
+                pullout_location_arrival_time: 'pullout_location_arrival_time',
+                pullout_location_departure_date: 'pullout_location_departure_date',
+                pullout_location_departure_time: 'pullout_location_departure_time',
+                ph_arrival_date: 'ph_arrival_date',
+                ph_arrival_time: 'ph_arrival_time',
+                delivery_location_arrival_date: 'delivery_location_arrival_date',
+                delivery_location_arrival_time: 'delivery_location_arrival_time',
+                van_alpha: 'van_alpha',
+                van_number: 'van_number',
+                van_name: 'van_name',
+                ph: 'ph',
+                shipper: 'shipper',
+                ecs: 'ecs',
+                tr: 'tr',
+                gs: 'gs',
+                waybill: 'waybill',
+                waybill_empty: 'waybill_empty',
+                prime_mover: 'prime_mover',
+                driver: 'driver',
+                driver_idNumber: 'driver_idNumber',
+                empty_pullout_location: 'empty_pullout_location',
+                loaded_van_loading_start_date: 'loading_start_date',
+                loaded_van_loading_start_time: 'loading_start_time',
+                loaded_van_loading_finish_date: 'loading_finish_date',
+                loaded_van_loading_finish_time: 'loading_finish_time',
+                loaded_van_delivery_departure_date: 'delivery_departure_date',
+                loaded_van_delivery_departure_time: 'delivery_departure_time',
+                loaded_van_delivery_arrival_date: 'delivery_arrival_date',
+                loaded_van_delivery_arrival_time: 'delivery_arrival_time',
+                end_uploading_date: 'end_unloading_start_date',
+                end_uploading_time: 'end_unloading_start_time',
+                end_unloading_start_date: 'end_unloading_start_date',
+                end_unloading_start_time: 'end_unloading_start_time',
+                end_unloading_finish_date: 'end_unloading_finish_date',
+                end_unloading_finish_time: 'end_unloading_finish_time',
+                dr_no: 'dr_no',
+                reference_documents: 'reference_documents',
+                load_description: 'load',
+                delivered_by_prime_mover: 'pm2',
+                delivered_by_driver: 'driver2',
+                delivered_by_driverIdNumber: 'driver_idNumber2',
+                delivered_to: 'delivered_to',
+                genset_hr_meter: 'genset_hr_meter',
+                genset_hr_meter_start: 'hr_meter_start',
+                genset_hr_meter_end: 'hr_meter_end',
+                genset_hr_reading: 'genset_hr_reading',
+                genset_start_date: 'gs_start_date',
+                genset_start_time: 'gs_start_time',
+                genset_end_date: 'gs_end_date',
+                genset_end_time: 'gs_end_time',
+                refueled: 'refueled'
+            };
+
+            const fallbackMap = {
+                delivery_location_arrival_date: ['pullout_location_departure_date'],
+                delivery_location_arrival_time: ['pullout_location_departure_time'],
+                end_unloading_start_date: ['end_uploading_date'],
+                end_unloading_start_time: ['end_uploading_time'],
+                end_unloading_finish_date: ['end_unloading_finish_date'],
+                end_unloading_finish_time: ['end_unloading_finish_date']
+            };
+
+            Object.entries(fieldMap).forEach(([recordKey, inputId]) => {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    let value = record[recordKey] ?? '';
+                    if ((value === '' || value === null) && fallbackMap[inputId]) {
+                        const fallbackKey = fallbackMap[inputId].find(key => record[key] !== '' && record[key] != null);
+                        if (fallbackKey) {
+                            value = record[fallbackKey];
+                        }
+                    }
+                    if (dateFields.includes(inputId) && value) {
+                        value = formatDateForDisplay(value);
+                    }
+                    if (timeFields.includes(inputId) && value) {
+                        value = formatTimeForDisplay(value);
+                    }
+                    input.value = value;
+                }
+            });
+        }
+
+        $(document).ready(function () {
             $("#enav").attr({
-					"class" : "nav-link active"
-				});
+                "class" : "nav-link active"
+            });
          });
     </script>
     <script>
@@ -456,6 +557,8 @@ $result = $stmt->get_result();
             const phList = document.getElementById("phList");
             const deliveredToInput = document.getElementById("delivered_to");
             const deliveredToList = document.getElementById("deliveredToList");
+            const emptyPulloutLocationInput = document.getElementById("empty_pullout_location");
+            const emptyPulloutLocationList = document.getElementById("emptyPulloutLocationList");
             const truckInput = document.getElementById("prime_mover");
             const truckList = document.getElementById("truckList");
             const pm2Input = document.getElementById("pm2");
@@ -690,6 +793,12 @@ $result = $stmt->get_result();
                 });
             }
 
+            if (emptyPulloutLocationInput && emptyPulloutLocationList) {
+                emptyPulloutLocationInput.addEventListener("input", function() {
+                    filterDropdownRecords(this, emptyPulloutLocationList, allLocations, (loc) => loc.location_name || "", (loc) => loc.location_name || "", (name) => { emptyPulloutLocationInput.value = name; });
+                });
+            }
+
             if (truckInput && truckList) {
                 truckInput.addEventListener("input", function() {
                     filterDropdown(this, truckList, allTrucks, (name) => {
@@ -763,6 +872,10 @@ $result = $stmt->get_result();
                 deliveredToInput.value = name;
             });
 
+            attachKeyboardNav(emptyPulloutLocationInput, emptyPulloutLocationList, (name) => {
+                emptyPulloutLocationInput.value = name;
+            });
+
             attachKeyboardNav(truckInput, truckList, (name) => {
                 truckInput.value = name;
             });
@@ -796,8 +909,69 @@ $result = $stmt->get_result();
                 "pagingType": "full_numbers"
             });
 
+            function getTableRowData(record) {
+                const displayDate = formatDateForDisplay(record.created_date || '');
+                const displayWaybill = record.waybill || record.waybill_empty || '';
+                const displayVan = [record.van_alpha, record.van_number, record.van_name].filter(Boolean).join(' ').trim();
+
+                return [
+                    '#' + record.entry_id,
+                    displayDate,
+                    displayWaybill,
+                    displayVan,
+                    record.driver || '',
+                    record.remarks || '',
+                    `<div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-primary btn-edit" title="Edit"><i class="bi bi-pencil"></i></button>
+                        <button type="button" class="btn btn-outline-danger btn-delete" title="Delete"><i class="bi bi-trash"></i></button>
+                    </div>`
+                ];
+            }
+
+            function setRowDataAttributes(row, record) {
+                if (!row || !record) return;
+                row.dataset.id = record.entry_id;
+                row.dataset.segment = record.segment || '';
+                row.dataset.activity = record.activity || '';
+                row.dataset.waybill = record.waybill || '';
+                row.dataset.driver = record.driver || '';
+                row.dataset.remarks = record.remarks || '';
+            }
+
+            // Convert display format date (MM/DD/YYYY) to database format (YYYY-MM-DD)
+            function convertDateToDatabase(displayDate) {
+                if (!displayDate || displayDate === '') return '';
+                const parts = displayDate.trim().split('/');
+                if (parts.length < 2 || parts.length > 3) return displayDate;
+                let month = parts[0].padStart(2, '0');
+                let day = parts[1].padStart(2, '0');
+                let year = parts[2] || new Date().getFullYear().toString();
+                if (year.length === 2) year = '20' + year;
+                if (isNaN(month) || isNaN(day) || isNaN(year)) return displayDate;
+                return `${year}-${month}-${day}`;
+            }
+
+            // Convert display format time (HHMM) to database format (HH:MM)
+            function convertTimeToDatabase(displayTime) {
+                if (!displayTime || displayTime === '') return '';
+                let time = displayTime.replace(':', '');
+                if (time.match(/^\d{3,4}$/)) {
+                    time = time.padStart(4, '0');
+                    const hh = time.substring(0, 2);
+                    const mm = time.substring(2, 4);
+                    if (parseInt(hh) > 23 || parseInt(mm) > 59) return displayTime;
+                    return `${hh}:${mm}`;
+                }
+                if (time.match(/^\d{2}:\d{2}$/)) {
+                    const [hh, mm] = time.split(':');
+                    if (parseInt(hh) > 23 || parseInt(mm) > 59) return displayTime;
+                    return time;
+                }
+                return displayTime;
+            }
+
             function getValues() {
-                return {
+                const values = {
                     id: document.getElementById("data_id").value,
                     segment_empty: document.getElementById("segment_empty").value,
                     activity_empty: document.getElementById("activity_empty").value,
@@ -810,6 +984,8 @@ $result = $stmt->get_result();
                     pullout_location_departure_time: document.getElementById("pullout_location_departure_time").value,
                     ph_arrival_date: document.getElementById("ph_arrival_date").value,
                     ph_arrival_time: document.getElementById("ph_arrival_time").value,
+                    delivery_location_arrival_date: document.getElementById("delivery_location_arrival_date").value,
+                    delivery_location_arrival_time: document.getElementById("delivery_location_arrival_time").value,
                     van_alpha: document.getElementById("van_alpha").value,
                     van_number: document.getElementById("van_number").value,
                     van_name: document.getElementById("van_name").value,
@@ -832,26 +1008,55 @@ $result = $stmt->get_result();
                     loaded_van_delivery_departure_time: document.getElementById("delivery_departure_time").value,
                     loaded_van_delivery_arrival_date: document.getElementById("delivery_arrival_date").value,
                     loaded_van_delivery_arrival_time: document.getElementById("delivery_arrival_time").value,
-                    genset_shutoff_date: document.getElementById("genset_shut_off_start_date").value,
-                    genset_shutoff_time: document.getElementById("genset_shut_off_start_time").value,
-                    end_uploading_date: document.getElementById("end_unloading_start_date").value,
-                    end_uploading_time: document.getElementById("end_unloading_start_time").value,
+                    end_uploading_date: document.getElementById("end_unloading_finish_date").value || document.getElementById("end_unloading_start_date").value,
+                    end_uploading_time: document.getElementById("end_unloading_finish_time").value || document.getElementById("end_unloading_start_time").value,
+                    end_unloading_start_date: document.getElementById("end_unloading_start_date").value,
+                    end_unloading_start_time: document.getElementById("end_unloading_start_time").value,
+                    end_unloading_finish_date: document.getElementById("end_unloading_finish_date").value,
+                    end_unloading_finish_time: document.getElementById("end_unloading_finish_time").value,
                     dr_no: document.getElementById("dr_no").value,
+                    reference_documents: document.getElementById("reference_documents").value,
                     load_description: document.getElementById("load").value,
                     delivered_by_prime_mover: document.getElementById("pm2").value,
                     delivered_by_driver: document.getElementById("driver2").value,
                     delivered_by_driverIdNumber: document.getElementById("driver_idNumber2").value,
                     delivered_to: document.getElementById("delivered_to").value,
+                    genset_hr_meter: document.getElementById("genset_hr_meter").value,
                     genset_hr_meter_start: document.getElementById("hr_meter_start").value,
                     genset_hr_meter_end: document.getElementById("hr_meter_end").value,
+                    genset_hr_reading: document.getElementById("genset_hr_reading").value,
                     genset_start_date: document.getElementById("gs_start_date").value,
                     genset_start_time: document.getElementById("gs_start_time").value,
                     genset_end_date: document.getElementById("gs_end_date").value,
-                    genset_end_time: document.getElementById("gs_end_time").value
+                    genset_end_time: document.getElementById("gs_end_time").value,
+                    refueled: document.getElementById("refueled").value
                 };
+
+                // Apply date/time conversions
+                const dateFields = ['pullout_location_arrival_date', 'pullout_location_departure_date', 'ph_arrival_date', 
+                    'delivery_location_arrival_date', 'loaded_van_loading_start_date', 'loaded_van_loading_finish_date', 
+                    'loaded_van_delivery_departure_date', 'loaded_van_delivery_arrival_date', 'end_uploading_date',
+                    'end_unloading_start_date', 'end_unloading_finish_date', 'genset_start_date', 'genset_end_date'];
+                const timeFields = ['pullout_location_arrival_time', 'pullout_location_departure_time', 'ph_arrival_time',
+                    'delivery_location_arrival_time', 'loaded_van_loading_start_time', 'loaded_van_loading_finish_time',
+                    'loaded_van_delivery_departure_time', 'loaded_van_delivery_arrival_time', 'end_uploading_time',
+                    'end_unloading_start_time', 'end_unloading_finish_time', 'genset_start_time', 'genset_end_time'];
+                
+                dateFields.forEach(field => { if (values[field]) values[field] = convertDateToDatabase(values[field]); });
+                timeFields.forEach(field => { if (values[field]) values[field] = convertTimeToDatabase(values[field]); });
+
+                return values;
             }
 
             const form = document.getElementById("dataEntryForm");
+
+            function clearForm() {
+                form.reset();
+                document.getElementById("data_id").value = "";
+                document.getElementById("segment_empty").value = "DoleRV";
+                document.getElementById("segment").value = "DoleRV";
+            }
+
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 const values = getValues();
@@ -866,10 +1071,25 @@ $result = $stmt->get_result();
                     dataType: 'json',
                     success: function(data) {
                         if (data.success) {
-                            rvTable.draw(false);
-                            form.reset();
-                            document.getElementById("segment_empty").value = "DoleRV";
-                            document.getElementById("segment").value = "DoleRV";
+                            if (data.record) {
+                                if (values.id) {
+                                    const row = document.querySelector(`#entriesTable tbody tr[data-id="${values.id}"]`);
+                                    if (row) {
+                                        const rowApi = rvTable.row(row);
+                                        rowApi.data(getTableRowData(data.record)).draw(false);
+                                        setRowDataAttributes(rowApi.node(), data.record);
+                                    } else {
+                                        rvTable.draw(false);
+                                    }
+                                } else {
+                                    const addedRow = rvTable.row.add(getTableRowData(data.record));
+                                    addedRow.draw(false);
+                                    setRowDataAttributes(addedRow.node(), data.record);
+                                }
+                            } else {
+                                rvTable.draw(false);
+                            }
+                            clearForm();
                             Swal.fire('Success', data.message, 'success');
                         } else {
                             Swal.fire('Error', data.message || 'Operation failed.', 'error');
@@ -879,6 +1099,65 @@ $result = $stmt->get_result();
                         Swal.fire('Error', 'Unable to reach server', 'error');
                     }
                 });
+            });
+
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.btn-edit')) {
+                    const row = e.target.closest('tr');
+                    const id = row.dataset.id;
+                    if (!id) return;
+
+                    fetch(`php/fetch/get_rv.php?id=${encodeURIComponent(id)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!data.success) {
+                                Swal.fire('Error', data.message || 'Unable to load record.', 'error');
+                                return;
+                            }
+                            fillFormFromRecord(data.record);
+                            const collapseEl = document.querySelector('#entryForm');
+                            if (collapseEl) {
+                                collapseEl.classList.add('show');
+                            }
+                        })
+                        .catch(() => {
+                            Swal.fire('Error', 'Unable to fetch record.', 'error');
+                        });
+                    return;
+                }
+
+                if (e.target.closest('.btn-delete')) {
+                    const row = e.target.closest('tr');
+                    const id = row.dataset.id;
+                    Swal.fire({
+                        title: 'Confirm delete',
+                        text: 'Delete row #' + id + ' ? This cannot be undone.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, delete',
+                        cancelButtonText: 'Cancel'
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: 'php/delete/rv.php',
+                                type: 'POST',
+                                data: { action: 'delete-rv', data_id: id },
+                                dataType: 'json',
+                                success: function(result) {
+                                    if (result.success) {
+                                        rvTable.row(row).remove().draw(false);
+                                        Swal.fire('Deleted!', 'Entry deleted.', 'success');
+                                    } else {
+                                        Swal.fire('Error', result.message || 'Delete failed', 'error');
+                                    }
+                                },
+                                error: function() {
+                                    Swal.fire('Error', 'Unable to reach server', 'error');
+                                }
+                            });
+                        }
+                    });
+                }
             });
         });
     </script>

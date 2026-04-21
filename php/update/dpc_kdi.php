@@ -84,6 +84,10 @@ $eighteen_cover = validate($_POST["eighteen_cover"] ?? "");
 $eighteen_pads = validate($_POST["eighteen_pads"] ?? "");
 $thirteen_total = validate($_POST["thirteen_total"] ?? "");
 $eighteen_total = validate($_POST["eighteen_total"] ?? "");
+$other_body = validate($_POST["other_body"] ?? "");
+$other_cover = validate($_POST["other_cover"] ?? "");
+$other_pads = validate($_POST["other_pads"] ?? "");
+$other_total = validate($_POST["other_total"] ?? "");
 $total_load = validate($_POST["total_load"] ?? "");
 $fgtr_no = validate($_POST["fgtrs_no"] ?? "");
 $remarks = validate($_POST["remarks"] ?? "");
@@ -155,6 +159,10 @@ $sql = "UPDATE operations SET
     18_pads = ?,
     13_total = ?,
     18_total = ?,
+    other_body = ?,
+    other_cover = ?,
+    other_pads = ?,
+    other_total = ?,
     total_load = ?,
     fgtr_no = ?,
     remarks = ?,
@@ -174,7 +182,7 @@ if (!$stmt) {
 }
 
 $stmt->bind_param(
-    "sssssssssssssssssssssssssssssi",
+    "sssssssssssssssssssssssssssssssssi",
     $entry_type,
     $segment,
     $activity,
@@ -196,6 +204,10 @@ $stmt->bind_param(
     $eighteen_pads,
     $thirteen_total,
     $eighteen_total,
+    $other_body,
+    $other_cover,
+    $other_pads,
+    $other_total,
     $total_load,
     $fgtr_no,
     $remarks,
@@ -231,6 +243,10 @@ if ($stmt->execute()) {
         "18_pads" => $eighteen_pads,
         "13_total" => $thirteen_total,
         "18_total" => $eighteen_total,
+        "other_body" => $other_body,
+        "other_cover" => $other_cover,
+        "other_pads" => $other_pads,
+        "other_total" => $other_total,
         "total_load" => $total_load,
         "fgtr_no" => $fgtr_no,
         "remarks" => $remarks,

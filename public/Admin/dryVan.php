@@ -1,9 +1,13 @@
 <?php 
 include "php/session-check.php"; 
 include "php/config/config.php";
+include_once "php/helpers/entry_date_filter.php";
 
-$query = "SELECT entry_id, entry_type, status, customer_ph, delivered_to, return_location, size, waybill, date_hauled, driver, truck, tr, date_unloaded, remarks, waybill_empty, date_returned, type, delivered_remarks, kms, booking, seal FROM operations WHERE entry_type = 'DRY VAN ENTRY' AND DATE(created_date) = CURDATE() ORDER BY entry_id DESC";
-$result = mysqli_query($conn, $query);
+$selectedEntryDate = getSelectedEntryDate();
+$stmt = $conn->prepare("SELECT entry_id, entry_type, status, customer_ph, delivered_to, return_location, size, waybill, date_hauled, driver, truck, tr, date_unloaded, remarks, waybill_empty, date_returned, type, delivered_remarks, kms, booking, seal FROM operations WHERE entry_type = 'DRY VAN ENTRY' AND DATE(created_date) = ? ORDER BY entry_id DESC");
+$stmt->bind_param("s", $selectedEntryDate);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -36,8 +40,8 @@ $result = mysqli_query($conn, $query);
                         <div class="btn-group" role="group" aria-label="Basic outlined example">
                             <a class="btn btn-outline-secondary" href="abcrv">ABC RV</a>
                             <a class="btn btn-outline-secondary" href="doleRv">Dole RV</a>
-                            <a class="btn btn-outline-secondary" href="sumiRv">Sumi RV</a>
-                            <a class="btn btn-outline-secondary" href="tdcRv">TDC RV</a>
+                            <a class="btn btn-outline-secondary" href="sumiRv">Sumi/Farmined RV</a>
+                            <a class="btn btn-outline-secondary" href="tdcRv">TDC/Good Farmer RV</a>
                             <a class="btn btn-outline-secondary" href="others">Others</a>
                             <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDI & OPM</a>
                             <a class="btn btn-outline-secondary" href="cargoTruck">Cargo Truck</a>
@@ -67,14 +71,44 @@ $result = mysqli_query($conn, $query);
                                                     <option value="Empty Import / Loaded Export">Empty Import / Loaded Export</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-6 position-relative">
-                                                <label for="customer_ph" class="form-label">Customer (PH) *</label>
-                                                <input type="text" class="form-control" id="customer_ph" name="customer_ph" required>
-                                                <ul id="customerList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
-                                            </div>
-                                            <div class="col-md-6 position-relative">
-                                                <label for="delivered_to" class="form-label">Delivery Location</label>
-                                                <input type="text" class="form-control" id="delivered_to" name="delivered_to">
+                    <div class="col-md-6 position-relative">
+                        <label for="customer_ph" class="form-label">Customer (PH) *</label>
+                        <input type="text" class="form-control" id="customer_ph" name="customer_ph" required>
+                        <ul id="customerList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="ecs" class="form-label">ECS</label>
+                        <input type="text" class="form-control" id="ecs" name="ecs">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="van_alpha" class="form-label">Van Name</label>
+                        <input type="text" class="form-control" id="van_alpha" name="van_alpha">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="van_number" class="form-label">Van Number</label>
+                        <input type="text" class="form-control" id="van_number" name="van_number">
+                    </div>
+                    <div class="col-md-6 position-relative">
+                        <label for="shipper" class="form-label">Shipping Line</label>
+                        <input type="text" class="form-control" id="shipper" name="shipper" autocomplete="off">
+                        <ul id="shipperList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="eir_out" class="form-label">EIR Out</label>
+                        <input type="text" class="form-control" id="eir_out" name="eir_out">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="eir_in" class="form-label">EIR In</label>
+                        <input type="text" class="form-control" id="eir_in" name="eir_in">
+                    </div>
+                    <div class="col-md-6 position-relative">
+                        <label for="pullout_location" class="form-label">Pull Out Location</label>
+                        <input type="text" class="form-control" id="pullout_location" name="pullout_location" autocomplete="off">
+                        <ul id="pulloutLocationList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
+                    </div>
+                    <div class="col-md-6 position-relative">
+                        <label for="delivered_to" class="form-label">Delivery Location</label>
+                        <input type="text" class="form-control" id="delivered_to" name="delivered_to">
                                                 <ul id="deliveredToList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                             </div>
                                             <div class="col-md-6 position-relative">
@@ -110,7 +144,7 @@ $result = mysqli_query($conn, $query);
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label for="date_hauled" class="form-label">Date Hauled</label>
-                                                        <input type="date" class="form-control" id="date_hauled" name="date_hauled">
+                                                        <input type="text" class="form-control" id="date_hauled" name="date_hauled" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
                                                     </div>
                                                     <div class="col-md-6 position-relative">
                                                         <label for="driver" class="form-label">Driver</label>
@@ -130,7 +164,7 @@ $result = mysqli_query($conn, $query);
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label for="date_unloaded" class="form-label">Date Unloaded</label>
-                                                        <input type="date" class="form-control" id="date_unloaded" name="date_unloaded">
+                                                        <input type="text" class="form-control" id="date_unloaded" name="date_unloaded" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
                                                     </div>
                                                     <div class="col-md-12">
                                                         <label for="remarks" class="form-label">Remarks</label>
@@ -150,7 +184,7 @@ $result = mysqli_query($conn, $query);
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label for="date_returned" class="form-label">Date Returned</label>
-                                                        <input type="date" class="form-control" id="date_returned" name="date_returned">
+                                                        <input type="text" class="form-control" id="date_returned" name="date_returned" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
                                                     </div>
                                                     <div class="col-md-6 position-relative">
                                                         <label for="driver_return" class="form-label">Driver</label>
@@ -196,6 +230,7 @@ $result = mysqli_query($conn, $query);
                                 <h5 class="mb-0">All Entries</h5>
                             </div>
                             <div class="card-body">
+                                <?php renderEntryDateFilter($selectedEntryDate); ?>
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle" id="entriesTable">
                                         <thead class="table-light">
@@ -212,7 +247,7 @@ $result = mysqli_query($conn, $query);
                                         <tbody>
                                             <?php if ($result && mysqli_num_rows($result) > 0): ?>
                                                 <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                                                    <tr>
+                                                    <tr data-entry-id="<?php echo htmlspecialchars($row['entry_id']); ?>">
                                                         <td><?php echo htmlspecialchars($row['entry_id']); ?></td>
                                                         <td><?php echo htmlspecialchars(($row['date_hauled'] ?? '') !== '' ? $row['date_hauled'] : ($row['date_returned'] ?? '')); ?></td>
                                                         <td><?php echo htmlspecialchars(($row['waybill'] ?? '') !== '' ? $row['waybill'] : ($row['waybill_empty'] ?? '')); ?></td>
@@ -226,7 +261,7 @@ $result = mysqli_query($conn, $query);
                                                     </tr>
                                                 <?php endwhile; ?>
                                             <?php else: ?>
-                                                <tr>
+                                                <tr class="no-entries-row">
                                                     <td colspan="7" class="text-center text-muted">No entries found for today</td>
                                                 </tr>
                                             <?php endif; ?>
@@ -247,15 +282,33 @@ $result = mysqli_query($conn, $query);
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script>
         $(document).ready(function() {
+            $("#entriesTable tbody tr.no-entries-row").remove();
+            const entriesTable = $("#entriesTable").DataTable({
+                order: [[0, "desc"]],
+                language: {
+                    emptyTable: "No entries found for selected date"
+                }
+            });
 
             const form = document.getElementById("dataEntryForm");
             const dataIdInput = document.getElementById("data_id");
             const statusSelect = document.getElementById("status");
             const loadedExportSection = document.getElementById("loadedExportSection");
             const emptyImportSection = document.getElementById("emptyImportSection");
+            const selectedEntryDate = "<?php echo htmlspecialchars($selectedEntryDate, ENT_QUOTES); ?>";
+            const todayEntryDate = "<?php echo date('Y-m-d'); ?>";
 
             const customerPhInput = document.getElementById("customer_ph");
             const customerList = document.getElementById("customerList");
+            const ecsInput = document.getElementById("ecs");
+            const vanAlphaInput = document.getElementById("van_alpha");
+            const vanNumberInput = document.getElementById("van_number");
+            const shipperInput = document.getElementById("shipper");
+            const shipperList = document.getElementById("shipperList");
+            const eirOutInput = document.getElementById("eir_out");
+            const eirInInput = document.getElementById("eir_in");
+            const pulloutLocationInput = document.getElementById("pullout_location");
+            const pulloutLocationList = document.getElementById("pulloutLocationList");
             const deliveredToInput = document.getElementById("delivered_to");
             const deliveredToList = document.getElementById("deliveredToList");
             const returnLocationInput = document.getElementById("return_location");
@@ -272,6 +325,7 @@ $result = mysqli_query($conn, $query);
             const trList = document.getElementById("trList");
 
             let allCustomers = [];
+            let allShippers = [];
             let allDrivers = [];
             let allTrucks = [];
             let allTrailers = [];
@@ -281,6 +335,11 @@ $result = mysqli_query($conn, $query);
                 .then(res => res.json())
                 .then(data => { allCustomers = Array.isArray(data) ? data : []; })
                 .catch(() => { allCustomers = []; });
+
+            fetch("php/fetch/get_shippers.php")
+                .then(res => res.json())
+                .then(data => { allShippers = Array.isArray(data) ? data : []; })
+                .catch(() => { allShippers = []; });
 
             fetch("php/fetch/get_drivers.php")
                 .then(res => res.json())
@@ -423,10 +482,24 @@ $result = mysqli_query($conn, $query);
                 );
             });
 
+            pulloutLocationInput.addEventListener("input", function() {
+                filterAndDisplay(this, pulloutLocationList, allCustomers,
+                    loc => loc.location_name || "",
+                    item => { pulloutLocationInput.value = item.location_name; }
+                );
+            });
+
             returnLocationInput.addEventListener("input", function() {
                 filterAndDisplay(this, returnLocationList, allCustomers,
                     loc => loc.location_name || "",
                     item => { returnLocationInput.value = item.location_name; }
+                );
+            });
+
+            shipperInput.addEventListener("input", function() {
+                filterAndDisplay(this, shipperList, allShippers,
+                    shipper => shipper.shipper || "",
+                    item => { shipperInput.value = item.shipper || ""; }
                 );
             });
 
@@ -493,8 +566,16 @@ $result = mysqli_query($conn, $query);
                 deliveredToInput.value = value;
             });
 
+            attachKeyboardNav(pulloutLocationInput, pulloutLocationList, (value) => {
+                pulloutLocationInput.value = value;
+            });
+
             attachKeyboardNav(returnLocationInput, returnLocationList, (value) => {
                 returnLocationInput.value = value;
+            });
+
+            attachKeyboardNav(shipperInput, shipperList, (value) => {
+                shipperInput.value = value;
             });
 
             attachKeyboardNav(driverInput, driverList, (value) => {
@@ -521,6 +602,119 @@ $result = mysqli_query($conn, $query);
                 trInput.value = value;
             });
 
+            function convertDateToDatabase(displayDate) {
+                if (!displayDate || displayDate === "") return "";
+
+                const parts = displayDate.trim().split("/");
+                if (parts.length < 2 || parts.length > 3) return displayDate;
+
+                let month = parts[0].padStart(2, "0");
+                let day = parts[1].padStart(2, "0");
+                let year = parts[2] || new Date().getFullYear().toString();
+
+                if (year.length === 2) {
+                    year = "20" + year;
+                }
+
+                if (isNaN(month) || isNaN(day) || isNaN(year)) return displayDate;
+
+                return `${year}-${month}-${day}`;
+            }
+
+            function escapeHtml(value) {
+                return $("<div>").text(value ?? "").html();
+            }
+
+            function formatDateForDisplay(dbDate) {
+                if (!dbDate || dbDate === "") return "";
+
+                const normalizedDate = String(dbDate).slice(0, 10);
+                const match = normalizedDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (!match) return dbDate;
+
+                return `${match[2]}/${match[3]}/${match[1]}`;
+            }
+
+            function normalizeManualDateInput(displayDate) {
+                if (!displayDate || displayDate === "") return "";
+
+                const parts = displayDate.trim().split("/");
+                if (parts.length < 2 || parts.length > 3) return displayDate;
+
+                let month = parts[0].trim();
+                let day = parts[1].trim();
+                let year = (parts[2] || "").trim();
+
+                if (!month || !day) return displayDate;
+                if (isNaN(month) || isNaN(day)) return displayDate;
+
+                month = month.padStart(2, "0");
+                day = day.padStart(2, "0");
+
+                if (!year) {
+                    year = new Date().getFullYear().toString();
+                } else if (isNaN(year)) {
+                    return displayDate;
+                } else if (year.length === 2) {
+                    year = "20" + year;
+                }
+
+                return `${month}/${day}/${year}`;
+            }
+
+            function buildEntryRowData(record) {
+                const displayDate = record.date_hauled || record.date_returned || "";
+                const displayWaybill = record.waybill || record.waybill_empty || "";
+                const displayVan = record.tr || record.truck || record.truck2 || "";
+                const displayDriver = record.driver || record.driver_return || "";
+                const displayRemarks = record.remarks || record.delivered_remarks || "";
+                const entryId = escapeHtml(record.entry_id || "");
+
+                return [
+                    entryId,
+                    escapeHtml(displayDate),
+                    escapeHtml(displayWaybill),
+                    escapeHtml(displayVan),
+                    escapeHtml(displayDriver),
+                    escapeHtml(displayRemarks),
+                    `<button class="btn btn-sm btn-info edit-btn" data-id="${entryId}"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-danger delete-btn" data-id="${entryId}"><i class="bi bi-trash"></i></button>`
+                ];
+            }
+
+            function upsertTableRow(record) {
+                if (!record || !record.entry_id) {
+                    return;
+                }
+
+                const rowData = buildEntryRowData(record);
+                const existingRow = $(`#entriesTable tbody tr[data-entry-id="${record.entry_id}"]`);
+
+                if (existingRow.length) {
+                    const rowApi = entriesTable.row(existingRow);
+                    rowApi.data(rowData).draw(false);
+                    $(rowApi.node()).attr("data-entry-id", record.entry_id);
+                } else if (selectedEntryDate === todayEntryDate) {
+                    const newRow = entriesTable.row.add(rowData).draw(false).node();
+                    $(newRow).attr("data-entry-id", record.entry_id);
+                }
+
+                entriesTable.order([0, "desc"]).draw(false);
+            }
+
+            function removeTableRow(entryId) {
+                const existingRow = $(`#entriesTable tbody tr[data-entry-id="${entryId}"]`);
+                if (existingRow.length) {
+                    entriesTable.row(existingRow).remove().draw(false);
+                }
+            }
+
+            document.querySelectorAll("[data-manual-date='true']").forEach((input) => {
+                input.addEventListener("blur", function() {
+                    this.value = normalizeManualDateInput(this.value);
+                });
+            });
+
             // Form submission
             form.addEventListener("submit", function(e) {
                 e.preventDefault();
@@ -532,19 +726,28 @@ $result = mysqli_query($conn, $query);
                 }
 
                 const formData = new FormData(form);
-                formData.append("action", dataIdInput.value ? "update-dry-van" : "add-dry-van");
+                ["date_hauled", "date_unloaded", "date_returned"].forEach((field) => {
+                    const currentValue = formData.get(field);
+                    if (typeof currentValue === "string" && currentValue !== "") {
+                        formData.set(field, convertDateToDatabase(currentValue));
+                    }
+                });
+                const isUpdate = Boolean(dataIdInput.value);
+                formData.append("action", isUpdate ? "update-dry-van" : "add-dry-van");
 
-                fetch("php/insert/dry_van.php", {
+                fetch(isUpdate ? "php/update/dry_van.php" : "php/insert/dry_van.php", {
                     method: "POST",
                     body: formData
                 })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
+                        upsertTableRow(data.record || {});
                         Swal.fire("Success!", data.message, "success").then(() => {
                             form.reset();
                             dataIdInput.value = "";
-                            location.reload();
+                            document.getElementById("driver_idNumber").value = "";
+                            document.getElementById("driver_return_idNumber").value = "";
                         });
                     } else {
                         Swal.fire("Error!", data.message, "error");
@@ -563,6 +766,13 @@ $result = mysqli_query($conn, $query);
                             dataIdInput.value = record.entry_id;
                             document.getElementById("status").value = record.status;
                             customerPhInput.value = record.customer_ph;
+                            ecsInput.value = record.ecs || "";
+                            vanAlphaInput.value = record.van_alpha || "";
+                            vanNumberInput.value = record.van_number || "";
+                            shipperInput.value = record.shipper || "";
+                            eirOutInput.value = record.eir_out || "";
+                            eirInInput.value = record.eir_in || "";
+                            pulloutLocationInput.value = record.pullout_location || "";
                             document.getElementById("delivered_to").value = record.delivered_to || "";
                             document.getElementById("return_location").value = record.return_location || "";
                             document.getElementById("size").value = record.size || "";
@@ -572,17 +782,19 @@ $result = mysqli_query($conn, $query);
 
                             // Load both sections with data
                             document.getElementById("waybill").value = record.waybill || "";
-                            document.getElementById("date_hauled").value = record.date_hauled || "";
+                            document.getElementById("date_hauled").value = formatDateForDisplay(record.date_hauled || "");
                             driverInput.value = record.driver || "";
+                            document.getElementById("driver_idNumber").value = record.driver_idNumber || "";
                             truckInput.value = record.truck || "";
                             trInput.value = record.tr || "";
-                            document.getElementById("date_unloaded").value = record.date_unloaded || "";
+                            document.getElementById("date_unloaded").value = formatDateForDisplay(record.date_unloaded || "");
                             document.getElementById("remarks").value = record.remarks || "";
 
                             document.getElementById("waybill_empty").value = record.waybill_empty || "";
-                            document.getElementById("date_returned").value = record.date_returned || "";
-                            driverReturnInput.value = record.driver || "";
-                            truckReturnInput.value = record.truck || "";
+                            document.getElementById("date_returned").value = formatDateForDisplay(record.date_returned || "");
+                            driverReturnInput.value = record.driver_return || "";
+                            document.getElementById("driver_return_idNumber").value = record.driver_return_idNumber || "";
+                            truckReturnInput.value = record.truck2 || "";
                             document.getElementById("type").value = record.type || "";
                             document.getElementById("delivered_remarks").value = record.delivered_remarks || "";
 
@@ -610,8 +822,9 @@ $result = mysqli_query($conn, $query);
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
+                                removeTableRow(id);
                                 Swal.fire("Deleted!", "", "success").then(() => {
-                                    location.reload();
+                                    dataIdInput.value = "";
                                 });
                             }
                         });

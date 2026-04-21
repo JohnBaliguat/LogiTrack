@@ -1,9 +1,50 @@
 <?php 
 include "php/session-check.php"; 
 include "php/config/config.php";
+include_once "php/helpers/entry_date_filter.php";
 
-$query = "SELECT entry_id, entry_type, segment, activity, waybill_date, remarks, pullout_location_arrival_date, pullout_location_arrival_time, pullout_location_departure_date, pullout_location_departure_time, ph_arrival_date, ph_arrival_time, van_alpha, van_number, van_name, ph, shipper, ecs, tr, gs, waybill, waybill_empty, prime_mover, driver, driver_idNumber, empty_pullout_location, loaded_van_loading_start_date, loaded_van_loading_start_time, loaded_van_loading_finish_date, loaded_van_loading_finish_time, loaded_van_delivery_departure_date, loaded_van_delivery_departure_time, loaded_van_delivery_arrival_date, loaded_van_delivery_arrival_time, genset_shutoff_date, genset_shutoff_time, end_uploading_date, end_uploading_time, dr_no, load_description, delivered_by_prime_mover, delivered_by_driver, delivered_to, delivered_remarks, genset_hr_meter_start, genset_hr_meter_end, genset_start_date, genset_start_time, genset_end_date, genset_end_time, others_date, truck, operations_ph, load_quantity_weight, unit_of_measure, deliver_from, production_date, finished_loading_date, finished_loading_time, ph_departure_date, ph_departure_time, wharf_arrival_date, wharf_arrival_time, wharf_departure_date, wharf_departure_time, tls_number, 13_kgs, sp_3kgs, total_load, bbhm_type, dpc_date, evita_farmind, departure, arrival, 13_body, 13_cover, 13_pads, 18_body, 18_cover, 18_pads, 13_total, 18_total, fgtr_no, cargo_date, customer_ph, outside, compound, total_trips, operations, piece_rate, created_by, created_date, modified_by, modified_date FROM operations WHERE entry_type = 'OTHERS ENTRY' AND DATE(created_date) = CURDATE() ORDER BY entry_id DESC";
-$result = mysqli_query($conn, $query);
+function normalizeOthersDateValue($value): string
+{
+    if (!is_string($value)) {
+        return '';
+    }
+
+    $value = trim($value);
+    if ($value === '' || $value === '0000-00-00' || $value === '0000-00-00 00:00:00') {
+        return '';
+    }
+
+    return $value;
+}
+
+function getOthersEffectiveDate(array $row): string
+{
+    $candidates = [
+        $row['others_date'] ?? '',
+        $row['cargo_date'] ?? '',
+        $row['dpc_date'] ?? '',
+        $row['waybill_date'] ?? '',
+        $row['pullout_location_arrival_date'] ?? '',
+        $row['production_date'] ?? '',
+        $row['finished_loading_date'] ?? '',
+        $row['created_date'] ?? '',
+    ];
+
+    foreach ($candidates as $candidate) {
+        $normalized = normalizeOthersDateValue($candidate);
+        if ($normalized !== '') {
+            return $normalized;
+        }
+    }
+
+    return '';
+}
+
+$selectedEntryDate = getSelectedEntryDate();
+$stmt = $conn->prepare("SELECT entry_id, entry_type, segment, activity, waybill_date, remarks, pullout_location_arrival_date, pullout_location_arrival_time, pullout_location_departure_date, pullout_location_departure_time, ph_arrival_date, ph_arrival_time, van_alpha, van_number, van_name, ph, shipper, ecs, tr, gs, waybill, waybill_empty, prime_mover, driver, driver_idNumber, empty_pullout_location, loaded_van_loading_start_date, loaded_van_loading_start_time, loaded_van_loading_finish_date, loaded_van_loading_finish_time, loaded_van_delivery_departure_date, loaded_van_delivery_departure_time, loaded_van_delivery_arrival_date, loaded_van_delivery_arrival_time, genset_shutoff_date, genset_shutoff_time, end_uploading_date, end_uploading_time, dr_no, load_description, delivered_by_prime_mover, delivered_by_driver, delivered_to, delivered_remarks, genset_hr_meter_start, genset_hr_meter_end, genset_start_date, genset_start_time, genset_end_date, genset_end_time, others_date, truck, operations_ph, load_quantity_weight, unit_of_measure, deliver_from, production_date, finished_loading_date, finished_loading_time, ph_departure_date, ph_departure_time, wharf_arrival_date, wharf_arrival_time, wharf_departure_date, wharf_departure_time, tls_number, 13_kgs, sp_3kgs, total_load, bbhm_type, dpc_date, evita_farmind, departure, arrival, 13_body, 13_cover, 13_pads, 18_body, 18_cover, 18_pads, 13_total, 18_total, fgtr_no, cargo_date, customer_ph, outside, compound, total_trips, operations, piece_rate, created_by, created_date, modified_by, modified_date FROM operations WHERE entry_type = 'OTHERS ENTRY' AND DATE(created_date) = ? ORDER BY entry_id DESC");
+$stmt->bind_param("s", $selectedEntryDate);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -37,8 +78,8 @@ $result = mysqli_query($conn, $query);
                         <div class="btn-group" role="group" aria-label="Basic outlined example">
                             <a class="btn btn-outline-secondary" href="abcrv">ABC RV</a>
                             <a class="btn btn-outline-secondary" href="doleRv">Dole RV</a>
-                            <a class="btn btn-outline-secondary" href="sumiRv">Sumi RV</a>
-                            <a class="btn btn-outline-secondary" href="tdcRv">TDC RV</a>
+                            <a class="btn btn-outline-secondary" href="sumiRv">Sumi/Farmined RV</a>
+                            <a class="btn btn-outline-secondary" href="tdcRv">TDC/Good Farmer RV</a>
                             <a class="btn btn-outline-secondary" href="others">Others</a>
                             <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDI & OPM</a>
                             <a class="btn btn-outline-secondary" href="cargoTruck">Cargo Truck</a>
@@ -185,6 +226,7 @@ $result = mysqli_query($conn, $query);
                         </div>
                     </div>
                     <div class="card-body">
+                        <?php renderEntryDateFilter($selectedEntryDate); ?>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle" id="entriesTable">
                                 <thead class="table-light">
@@ -204,7 +246,7 @@ $result = mysqli_query($conn, $query);
                                         data-id="<?php echo $row['entry_id']; ?>"
                                         data-segment="<?php echo htmlspecialchars($row['segment']); ?>"
                                         data-activity="<?php echo htmlspecialchars($row['activity']); ?>"
-                                        data-date="<?php echo htmlspecialchars($row['waybill_date']); ?>"
+                                        data-date="<?php echo htmlspecialchars(getOthersEffectiveDate($row)); ?>"
                                         data-waybill="<?php echo htmlspecialchars($row['waybill']); ?>"
                                         data-truck="<?php echo htmlspecialchars($row['truck']); ?>"
                                         data-driver="<?php echo htmlspecialchars($row['driver']); ?>"
@@ -220,7 +262,7 @@ $result = mysqli_query($conn, $query);
                                         data-remarks="<?php echo htmlspecialchars($row['remarks']); ?>"
                                     >
                                         <td><strong>#<?php echo $row['entry_id']; ?></strong></td>
-                                        <td><?php echo htmlspecialchars($row['others_date'] ?: ($row['cargo_date'] ?: ($row['dpc_date'] ?: ($row['waybill_date'] ?: ($row['pullout_location_arrival_date'] ?: ($row['created_date'] ?? '')))))); ?></td>
+                                        <td><?php echo htmlspecialchars(getOthersEffectiveDate($row)); ?></td>
                                         <td><?php echo htmlspecialchars(($row['waybill'] ?? '') !== '' ? $row['waybill'] : ($row['waybill_empty'] ?? '')); ?></td>
                                         <td><?php echo htmlspecialchars(($row['van_name'] ?? '') !== '' ? $row['van_name'] : (trim(($row['van_alpha'] ?? '') . ' ' . ($row['van_number'] ?? '')) !== '' ? trim(($row['van_alpha'] ?? '') . ' ' . ($row['van_number'] ?? '')) : (($row['tr'] ?? '') !== '' ? $row['tr'] : ($row['truck'] ?? '')))); ?></td>
                                         <td><?php echo htmlspecialchars(($row['driver'] ?? '') !== '' ? $row['driver'] : ($row['delivered_by_driver'] ?? '')); ?></td>
@@ -692,7 +734,7 @@ $result = mysqli_query($conn, $query);
                 dataIdInput.value = record.entry_id || '';
                 segmentInput.value = record.segment || '';
                 activityInput.value = record.activity || '';
-                dateInput.value = record.waybill_date || '';
+                dateInput.value = formatDateForDisplay(getEffectiveOthersDate(record)) || '';
                 waybillInput.value = record.waybill || '';
                 truckInput.value = record.truck || '';
                 driverInput.value = record.driver || '';
@@ -713,16 +755,59 @@ $result = mysqli_query($conn, $query);
                 collapseInstance.show();
             };
 
+            // Helper function to convert YYYY-MM-DD to MM/DD/YYYY
+            function formatDateForDisplay(dbDate) {
+                if (!dbDate || dbDate === '') return '';
+                const normalizedDate = String(dbDate).slice(0, 10);
+                const match = normalizedDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (!match) return dbDate; // Return as-is if not in expected format
+                return `${match[2]}/${match[3]}/${match[1]}`; // MM/DD/YYYY
+            }
+
+            function normalizeDateValue(value) {
+                if (!value) return '';
+                const normalized = String(value).trim();
+                if (normalized === '' || normalized === '0000-00-00' || normalized === '0000-00-00 00:00:00') {
+                    return '';
+                }
+                return normalized;
+            }
+
+            function getEffectiveOthersDate(rowData) {
+                const candidates = [
+                    rowData.others_date,
+                    rowData.cargo_date,
+                    rowData.dpc_date,
+                    rowData.waybill_date,
+                    rowData.pullout_location_arrival_date,
+                    rowData.production_date,
+                    rowData.finished_loading_date,
+                    rowData.created_date
+                ];
+
+                for (const candidate of candidates) {
+                    const normalized = normalizeDateValue(candidate);
+                    if (normalized) {
+                        return normalized;
+                    }
+                }
+
+                return '';
+            }
+
             const getTableRowData = (rowData) => {
+                const displayDate = formatDateForDisplay(getEffectiveOthersDate(rowData));
+                const displayWaybill = rowData.waybill || rowData.waybill_empty || '';
+                const displayVan = rowData.van_name || (rowData.van_alpha || '' + ' ' + rowData.van_number || '').trim() || rowData.tr || rowData.truck || '';
+                const displayDriver = rowData.driver || rowData.delivered_by_driver || '';
+                const displayRemarks = rowData.remarks || rowData.delivered_remarks || '';
                 return [
-                    '<input type="checkbox" class="form-check-input row-checkbox">',
                     `<strong>#${rowData.entry_id}</strong>`,
-                    rowData.segment || '',
-                    rowData.activity || '',
-                    rowData.waybill || '',
-                    rowData.truck || '',
-                    rowData.driver || '',
-                    rowData.remarks || '',
+                    displayDate,
+                    displayWaybill,
+                    displayVan,
+                    displayDriver,
+                    displayRemarks,
                     `<div class="btn-group btn-group-sm">
                         <button type="button" class="btn btn-outline-primary btn-edit" title="Edit"><i class="bi bi-pencil"></i></button>
                         <button type="button" class="btn btn-outline-danger btn-delete" title="Delete"><i class="bi bi-trash"></i></button>
@@ -735,7 +820,7 @@ $result = mysqli_query($conn, $query);
                 row.dataset.id = rowData.entry_id || '';
                 row.dataset.segment = rowData.segment || '';
                 row.dataset.activity = rowData.activity || '';
-                row.dataset.date = rowData.waybill_date || '';
+                row.dataset.date = getEffectiveOthersDate(rowData);
                 row.dataset.waybill = rowData.waybill || '';
                 row.dataset.truck = rowData.truck || '';
                 row.dataset.driver = rowData.driver || '';

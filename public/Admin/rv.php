@@ -1,9 +1,13 @@
 <?php 
 include "php/session-check.php"; 
 include "php/config/config.php";
+include_once "php/helpers/entry_date_filter.php";
 
-$query = "SELECT entry_id, entry_type, segment_empty, activity_empty, segment, activity, remarks, pullout_location_arrival_date, pullout_location_arrival_time, pullout_location_departure_date, pullout_location_departure_time, ph_arrival_date, ph_arrival_time, van_alpha, van_number, van_name, ph, shipper, ecs, tr, gs, waybill, waybill_empty, prime_mover, driver, empty_pullout_location, loaded_van_loading_start_date, loaded_van_loading_start_time, loaded_van_loading_finish_date, loaded_van_loading_finish_time, loaded_van_delivery_departure_date, loaded_van_delivery_departure_time, loaded_van_delivery_arrival_date, loaded_van_delivery_arrival_time, genset_shutoff_date, genset_shutoff_time, end_uploading_date, end_uploading_time, dr_no, load_description, delivered_by_prime_mover, delivered_by_driver, delivered_to, delivered_remarks, genset_hr_meter_start, genset_hr_meter_end, genset_start_date, genset_start_time, genset_end_date, genset_end_time FROM operations WHERE entry_type = 'RV ENTRY' AND DATE(created_date) = CURDATE() ORDER BY entry_id DESC";
-$result = mysqli_query($conn, $query);
+$selectedEntryDate = getSelectedEntryDate();
+$stmt = $conn->prepare("SELECT entry_id, entry_type, segment_empty, activity_empty, segment, activity, remarks, created_date, pullout_location_arrival_date, pullout_location_arrival_time, pullout_location_departure_date, pullout_location_departure_time, ph_arrival_date, ph_arrival_time, van_alpha, van_number, van_name, ph, shipper, ecs, tr, gs, waybill, waybill_empty, prime_mover, driver, empty_pullout_location, loaded_van_loading_start_date, loaded_van_loading_start_time, loaded_van_loading_finish_date, loaded_van_loading_finish_time, loaded_van_delivery_departure_date, loaded_van_delivery_departure_time, loaded_van_delivery_arrival_date, loaded_van_delivery_arrival_time, genset_shutoff_date, genset_shutoff_time, end_uploading_date, end_uploading_time, dr_no, load_description, delivered_by_prime_mover, delivered_by_driver, delivered_to, delivered_remarks, genset_hr_meter_start, genset_hr_meter_end, genset_start_date, genset_start_time, genset_end_date, genset_end_time FROM operations WHERE entry_type = 'RV ENTRY' AND DATE(created_date) = ? ORDER BY entry_id DESC");
+$stmt->bind_param("s", $selectedEntryDate);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -111,10 +115,6 @@ $result = mysqli_query($conn, $query);
                                         <label for="van_number" class="form-label">VAN - NUMBER</label>
                                         <input type="text" class="form-control" id="van_number" name="van_number">
                                     </div>
-                                    <div class="col-md-12">
-                                        <label for="empty_container_van" class="form-label">EMPTY CONTAINER VAN (WITHDRAWAL)</label>
-                                        <input type="text" class="form-control" id="empty_container_van" name="empty_container_van">
-                                    </div>
                                     <div class="col-md-6">
                                         <label for="withdrawal_date" class="form-label">DATE</label>
                                         <input type="text" class="form-control" id="withdrawal_date" name="withdrawal_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
@@ -174,9 +174,13 @@ $result = mysqli_query($conn, $query);
                                         </div>
 
                                     </div>
-                                    <div class="col-md-12">
-                                        <label for="empty_pullout_location" class="form-label">EMPTY PULLOUT LOCATION</label>
-                                        <input type="text" class="form-control" id="empty_pullout_location" name="empty_pullout_location">
+                                    <div class="col-md-6">
+                                        <div class="mb-3 position-relative">
+                                            <label for="empty_pullout_location" class="form-label">EMPTY PULL-OUT LOCATION</label>
+                                            <input type="text" class="form-control" id="empty_pullout_location" name="empty_pullout_location" autocomplete="off">
+                                            <ul id="emptyPulloutLocationList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1010; display: none; max-height: 240px; overflow-y: auto;"></ul>
+                                        </div>
+
                                     </div>
                                     <h5>LOADED CONTAINER VAN</h5>
                                     <div class="col-md-6">
@@ -228,22 +232,6 @@ $result = mysqli_query($conn, $query);
                                     <div class="col-md-6">
                                         <label for="delivery_arrival_time" class="form-label">DELIVERY ARRIVAL TIME</label>
                                         <input type="text" class="form-control" id="delivery_arrival_time" name="delivery_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="genset_shut_off_start_date" class="form-label">GENSET SHUT OFF START DATE</label>
-                                        <input type="text" class="form-control" id="genset_shut_off_start_date" name="genset_shut_off_start_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="genset_shut_off_start_time" class="form-label">GENSET SHUT OFF START TIME</label>
-                                        <input type="text" class="form-control" id="genset_shut_off_start_time" name="genset_shut_off_start_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="genset_shut_off_finish_date" class="form-label">GENSET SHUT OFF FINISH DATE</label>
-                                        <input type="text" class="form-control" id="genset_shut_off_finish_date" name="genset_shut_off_finish_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="genset_shut_off_finish_time" class="form-label">GENSET SHUT OFF FINISH TIME</label>
-                                        <input type="text" class="form-control" id="genset_shut_off_finish_time" name="genset_shut_off_finish_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="end_unloading_start_date" class="form-label">END OF UNLOADING START DATE</label>
@@ -373,6 +361,7 @@ $result = mysqli_query($conn, $query);
                         </div>
                     </div>
                     <div class="card-body">
+                        <?php renderEntryDateFilter($selectedEntryDate); ?>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle" id="entriesTable">
                                 <thead class="table-light">
@@ -390,7 +379,7 @@ $result = mysqli_query($conn, $query);
                                     <?php while ($row = mysqli_fetch_assoc($result)) { ?>
                                     <tr data-id="<?php echo $row['entry_id']; ?>" data-segment="<?php echo htmlspecialchars($row['segment']); ?>" data-activity="<?php echo htmlspecialchars($row['activity']); ?>" data-waybill="<?php echo htmlspecialchars($row['waybill']); ?>" data-driver="<?php echo htmlspecialchars($row['driver']); ?>" data-remarks="<?php echo htmlspecialchars($row['remarks']); ?>">
                                         <td><strong>#<?php echo $row['entry_id']; ?></strong></td>
-                                        <td><?php echo htmlspecialchars($row['pullout_location_arrival_date'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($row['created_date'] ? date('m/d/Y', strtotime($row['created_date'])) : ''); ?></td>
                                         <td><?php echo htmlspecialchars(($row['waybill'] ?? '') !== '' ? $row['waybill'] : ($row['waybill_empty'] ?? '')); ?></td>
                                         <td><?php echo htmlspecialchars(trim(($row['van_alpha'] ?? '') . ' ' . ($row['van_number'] ?? '') . ' ' . ($row['van_name'] ?? ''))); ?></td>
                                         <td><?php echo htmlspecialchars($row['driver'] ?? ''); ?></td>
@@ -564,6 +553,8 @@ $result = mysqli_query($conn, $query);
             const phList = document.getElementById("phList");
             const deliveredToInput = document.getElementById("delivered_to");
             const deliveredToList = document.getElementById("deliveredToList");
+            const emptyPulloutLocationInput = document.getElementById("empty_pullout_location");
+            const emptyPulloutLocationList = document.getElementById("emptyPulloutLocationList");
             let allLocations = [];
 
             fetch("php/fetch/get_locations.php")
@@ -595,6 +586,19 @@ $result = mysqli_query($conn, $query);
                         (loc) => loc.location_name || "",
                         (loc) => loc.location_name || "",
                         (name) => { deliveredToInput.value = name; }
+                    );
+                });
+            }
+
+            if (emptyPulloutLocationInput && emptyPulloutLocationList) {
+                emptyPulloutLocationInput.addEventListener("input", function() {
+                    filterDropdownRecords(
+                        this,
+                        emptyPulloutLocationList,
+                        allLocations,
+                        (loc) => loc.location_name || "",
+                        (loc) => loc.location_name || "",
+                        (name) => { emptyPulloutLocationInput.value = name; }
                     );
                 });
             }
@@ -880,6 +884,12 @@ $result = mysqli_query($conn, $query);
                 });
             }
 
+            if (emptyPulloutLocationInput && emptyPulloutLocationList) {
+                attachKeyboardNav(emptyPulloutLocationInput, emptyPulloutLocationList, (val) => {
+                    emptyPulloutLocationInput.value = val;
+                });
+            }
+
             if (driverInput && driverList) {
                 attachKeyboardNav(driverInput, driverList, (val) => {
                     driverInput.value = val;
@@ -928,6 +938,74 @@ $result = mysqli_query($conn, $query);
         const form = document.getElementById('dataEntryForm');
         const dataIdInput = document.getElementById('data_id');
 
+        // Convert display format date (MM/DD/YYYY or M/D/YYYY) to database format (YYYY-MM-DD)
+        function convertDateToDatabase(displayDate) {
+            if (!displayDate || displayDate === '') return '';
+            
+            // Try to parse M/D/YYYY, MM/DD/YYYY, M/D, or MM/DD formats
+            const parts = displayDate.trim().split('/');
+            if (parts.length < 2 || parts.length > 3) return displayDate; // Invalid format, return as-is
+            
+            let month = parts[0];
+            let day = parts[1];
+            let year = parts[2];
+            
+            // Pad month and day with leading zeros if needed
+            month = month.padStart(2, '0');
+            day = day.padStart(2, '0');
+            
+            // If year is not provided, use current year
+            if (!year) {
+                const today = new Date();
+                year = today.getFullYear().toString();
+            } else if (year.length === 2) {
+                // Convert 2-digit year to 4-digit year (assume 00-99 is 2000-2099)
+                year = '20' + year;
+            }
+            
+            // Validate date values
+            if (isNaN(month) || isNaN(day) || isNaN(year)) return displayDate;
+            
+            // Return in YYYY-MM-DD format
+            return `${year}-${month}-${day}`;
+        }
+
+        // Convert display format time (HHMM or H:MM) to database format (HH:MM)
+        function convertTimeToDatabase(displayTime) {
+            if (!displayTime || displayTime === '') return '';
+            
+            // Remove any colons first
+            let time = displayTime.replace(':', '');
+            
+            // If it's 3 or 4 digits, assume it's HHMM format
+            if (time.match(/^\d{3,4}$/)) {
+                // Pad to 4 digits if needed (e.g., "930" becomes "0930")
+                time = time.padStart(4, '0');
+                // Extract HH and MM
+                const hh = time.substring(0, 2);
+                const mm = time.substring(2, 4);
+                
+                // Validate
+                const hour = parseInt(hh);
+                const minute = parseInt(mm);
+                if (hour > 23 || minute > 59) return displayTime; // Invalid, return as-is
+                
+                return `${hh}:${mm}`;
+            }
+            
+            // If already in HH:MM format, validate and return
+            if (time.match(/^\d{2}:\d{2}$/)) {
+                const [hh, mm] = time.split(':');
+                const hour = parseInt(hh);
+                const minute = parseInt(mm);
+                if (hour > 23 || minute > 59) return displayTime;
+                return time;
+            }
+            
+            // Couldn't parse, return as-is
+            return displayTime;
+        }
+
         function getValues() {
             const values = {
                 id: dataIdInput.value || null,
@@ -941,6 +1019,8 @@ $result = mysqli_query($conn, $query);
                 pullout_location_departure_time: document.getElementById('pullout_location_departure_time').value,
                 ph_arrival_date: document.getElementById('ph_arrival_date').value,
                 ph_arrival_time: document.getElementById('ph_arrival_time').value,
+                withdrawal_date: document.getElementById('withdrawal_date').value,
+                withdrawal_time: document.getElementById('withdrawal_time').value,
                 van_alpha: document.getElementById('van_alpha').value.trim(),
                 van_number: document.getElementById('van_number').value.trim(),
                 van_name: document.getElementById('van_name').value.trim(),
@@ -962,25 +1042,80 @@ $result = mysqli_query($conn, $query);
                 loaded_van_delivery_departure_time: document.getElementById('delivery_departure_time').value,
                 loaded_van_delivery_arrival_date: document.getElementById('delivery_arrival_date').value,
                 loaded_van_delivery_arrival_time: document.getElementById('delivery_arrival_time').value,
-                genset_shutoff_date: document.getElementById('genset_shut_off_start_date').value,
-                genset_shutoff_time: document.getElementById('genset_shut_off_start_time').value,
-                end_uploading_date: document.getElementById('end_unloading_finish_date').value,
-                end_uploading_time: document.getElementById('end_unloading_finish_time').value,
+                end_uploading_date: document.getElementById('end_unloading_finish_date').value || document.getElementById('end_unloading_start_date').value,
+                end_uploading_time: document.getElementById('end_unloading_finish_time').value || document.getElementById('end_unloading_start_time').value,
+                end_unloading_start_date: document.getElementById('end_unloading_start_date').value,
+                end_unloading_start_time: document.getElementById('end_unloading_start_time').value,
+                end_unloading_finish_date: document.getElementById('end_unloading_finish_date').value,
+                end_unloading_finish_time: document.getElementById('end_unloading_finish_time').value,
                 waybill: document.getElementById('waybill').value.trim(),
                 dr_no: document.getElementById('dr_no').value.trim(),
+                reference_documents: document.getElementById('reference_documents').value.trim(),
                 load_description: document.getElementById('load').value.trim(),
                 delivered_by_prime_mover: document.getElementById('pm2').value.trim(),
                 delivered_by_driver: document.getElementById('driver2').value.trim(),
                 delivered_to: document.getElementById('delivered_to').value.trim(),
+                genset_hr_meter: document.getElementById('genset_hr_meter').value.trim(),
                 genset_hr_meter_start: document.getElementById('hr_meter_start').value.trim(),
                 genset_hr_meter_end: document.getElementById('hr_meter_end').value.trim(),
+                genset_hr_reading: document.getElementById('genset_hr_reading').value.trim(),
                 genset_start_date: document.getElementById('gs_start_date').value,
                 genset_start_time: document.getElementById('gs_start_time').value,
                 genset_end_date: document.getElementById('gs_end_date').value,
                 genset_end_time: document.getElementById('gs_end_time').value,
+                refueled: document.getElementById('refueled').value.trim(),
                 driver_idNumber: document.getElementById('driver_idNumber').value.trim(),
                 delivered_by_driverIdNumber: document.getElementById('driver_idNumber2').value.trim()
             };
+
+            // List of all date fields that need conversion from display format to database format
+            const dateFields = [
+                'pullout_location_arrival_date',
+                'pullout_location_departure_date',
+                'ph_arrival_date',
+                'withdrawal_date',
+                'loaded_van_loading_start_date',
+                'loaded_van_loading_finish_date',
+                'loaded_van_delivery_departure_date',
+                'loaded_van_delivery_arrival_date',
+                'end_uploading_date',
+                'end_unloading_start_date',
+                'end_unloading_finish_date',
+                'genset_start_date',
+                'genset_end_date'
+            ];
+
+            // List of all time fields that need conversion from display format to database format
+            const timeFields = [
+                'pullout_location_arrival_time',
+                'pullout_location_departure_time',
+                'ph_arrival_time',
+                'withdrawal_time',
+                'loaded_van_loading_start_time',
+                'loaded_van_loading_finish_time',
+                'loaded_van_delivery_departure_time',
+                'loaded_van_delivery_arrival_time',
+                'end_uploading_time',
+                'end_unloading_start_time',
+                'end_unloading_finish_time',
+                'genset_start_time',
+                'genset_end_time'
+            ];
+
+            // Convert all date fields from display format to database format
+            dateFields.forEach(field => {
+                if (values[field]) {
+                    values[field] = convertDateToDatabase(values[field]);
+                }
+            });
+
+            // Convert all time fields from display format to database format
+            timeFields.forEach(field => {
+                if (values[field]) {
+                    values[field] = convertTimeToDatabase(values[field]);
+                }
+            });
+
             return values;
         }
 
@@ -1001,14 +1136,16 @@ $result = mysqli_query($conn, $query);
         }
 
         function writeRow(rowData) {
+            const displayDate = rowData.pullout_location_arrival_date || '';
+            const displayWaybill = rowData.waybill || rowData.waybill_empty || '';
+            const displayVan = [rowData.van_alpha, rowData.van_number, rowData.van_name].filter(Boolean).join(' ').trim();
             return `<tr data-id="${rowData.entry_id}" data-segment_empty="${rowData.segment_empty || ''}" data-activity_empty="${rowData.activity_empty || ''}" data-segment="${rowData.segment}" data-activity="${rowData.activity}" data-waybill="${rowData.waybill}" data-driver="${rowData.driver}" data-remarks="${rowData.remarks}">
-                <td><input type="checkbox" class="form-check-input row-checkbox"></td>
                 <td><strong>#${rowData.entry_id}</strong></td>
-                <td>${rowData.segment}</td>
-                <td>${rowData.activity}</td>
-                <td>${rowData.waybill}</td>
-                <td>${rowData.driver}</td>
-                <td>${rowData.remarks}</td>
+                <td>${displayDate}</td>
+                <td>${displayWaybill}</td>
+                <td>${displayVan}</td>
+                <td>${rowData.driver || ''}</td>
+                <td>${rowData.remarks || ''}</td>
                 <td>
                     <div class="btn-group btn-group-sm">
                         <button type="button" class="btn btn-outline-primary btn-edit" title="Edit"><i class="bi bi-pencil"></i></button>
@@ -1019,14 +1156,16 @@ $result = mysqli_query($conn, $query);
         }
 
         function getTableRowData(rowData) {
+            const displayDate = formatDateForDisplay(rowData.created_date || '');
+            const displayWaybill = rowData.waybill || rowData.waybill_empty || '';
+            const displayVan = [rowData.van_alpha, rowData.van_number, rowData.van_name].filter(Boolean).join(' ').trim();
             return [
-                '<input type="checkbox" class="form-check-input row-checkbox">',
                 `<strong>#${rowData.entry_id}</strong>`,
-                rowData.segment,
-                rowData.activity,
-                rowData.waybill,
-                rowData.driver,
-                rowData.remarks,
+                displayDate,
+                displayWaybill,
+                displayVan,
+                rowData.driver || '',
+                rowData.remarks || '',
                 `<div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-outline-primary btn-edit" title="Edit"><i class="bi bi-pencil"></i></button>
                     <button type="button" class="btn btn-outline-danger btn-delete" title="Delete"><i class="bi bi-trash"></i></button>
@@ -1046,11 +1185,61 @@ $result = mysqli_query($conn, $query);
             row.dataset.remarks = rowData.remarks;
         }
 
+        // Helper function to convert YYYY-MM-DD to MM/DD/YYYY
+        function formatDateForDisplay(dbDate) {
+            if (!dbDate || dbDate === '') return '';
+            const match = dbDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (!match) return dbDate; // Return as-is if not in expected format
+            return `${match[2]}/${match[3]}/${match[1]}`; // MM/DD/YYYY
+        }
+
+        // Helper function to convert HH:MM:SS or HH:MM to HH:MM format
+        function formatTimeForDisplay(dbTime) {
+            if (!dbTime || dbTime === '') return '';
+            // Extract HH:MM from HH:MM:SS or HH:MM format
+            const match = dbTime.match(/^(\d{2}):(\d{2})/);
+            if (!match) return dbTime;
+            return match[1] + ':' + match[2]; // HH:MM format
+        }
+
         function fillFormFromRecord(record) {
             if (!record) return;
             dataIdInput.value = record.entry_id || '';
             selectedEmptySegment = record.segment_empty || '';
             selectedSegment = record.segment || '';
+            
+            // Fields that need date formatting (YYYY-MM-DD to MM/DD/YYYY)
+            const dateFields = [
+                'pullout_location_arrival_date',
+                'pullout_location_departure_date',
+                'ph_arrival_date',
+                'withdrawal_date',
+                'loading_start_date',
+                'loading_finish_date',
+                'delivery_departure_date',
+                'delivery_arrival_date',
+                'end_unloading_start_date',
+                'end_unloading_finish_date',
+                'gs_start_date',
+                'gs_end_date'
+            ];
+
+            // Fields that need time formatting (HH:MM to HHMM)
+            const timeFields = [
+                'pullout_location_arrival_time',
+                'pullout_location_departure_time',
+                'ph_arrival_time',
+                'withdrawal_time',
+                'loading_start_time',
+                'loading_finish_time',
+                'delivery_departure_time',
+                'delivery_arrival_time',
+                'end_unloading_start_time',
+                'end_unloading_finish_time',
+                'gs_start_time',
+                'gs_end_time'
+            ];
+
             const fieldMap = {
                 segment_empty: 'segment_empty',
                 activity_empty: 'activity_empty',
@@ -1062,6 +1251,8 @@ $result = mysqli_query($conn, $query);
                 pullout_location_departure_time: 'pullout_location_departure_time',
                 ph_arrival_date: 'ph_arrival_date',
                 ph_arrival_time: 'ph_arrival_time',
+                withdrawal_date: 'withdrawal_date',
+                withdrawal_time: 'withdrawal_time',
                 van_alpha: 'van_alpha',
                 van_number: 'van_number',
                 van_name: 'van_name',
@@ -1070,43 +1261,76 @@ $result = mysqli_query($conn, $query);
                 ecs: 'ecs',
                 tr: 'tr',
                 gs: 'gs',
+                waybill: 'waybill',
                 waybill_empty: 'waybill_empty',
                 prime_mover: 'prime_mover',
                 driver: 'driver',
+                driver_idNumber: 'driver_idNumber',
                 empty_pullout_location: 'empty_pullout_location',
-                loading_start_date: 'loading_start_date',
-                loading_start_time: 'loading_start_time',
-                loading_finish_date: 'loading_finish_date',
-                loading_finish_time: 'loading_finish_time',
-                delivery_departure_date: 'delivery_departure_date',
-                delivery_departure_time: 'delivery_departure_time',
-                delivery_arrival_date: 'delivery_arrival_date',
-                delivery_arrival_time: 'delivery_arrival_time',
-                genset_shut_off_start_date: 'genset_shut_off_start_date',
-                genset_shut_off_start_time: 'genset_shut_off_start_time',
+                loaded_van_loading_start_date: 'loading_start_date',
+                loaded_van_loading_start_time: 'loading_start_time',
+                loaded_van_loading_finish_date: 'loading_finish_date',
+                loaded_van_loading_finish_time: 'loading_finish_time',
+                loaded_van_delivery_departure_date: 'delivery_departure_date',
+                loaded_van_delivery_departure_time: 'delivery_departure_time',
+                loaded_van_delivery_arrival_date: 'delivery_arrival_date',
+                loaded_van_delivery_arrival_time: 'delivery_arrival_time',
+                end_unloading_start_date: 'end_unloading_start_date',
+                end_unloading_start_time: 'end_unloading_start_time',
+                end_uploading_date: 'end_unloading_finish_date',
+                end_uploading_time: 'end_unloading_finish_time',
                 end_unloading_finish_date: 'end_unloading_finish_date',
                 end_unloading_finish_time: 'end_unloading_finish_time',
-                waybill: 'waybill',
                 dr_no: 'dr_no',
+                reference_documents: 'reference_documents',
                 load_description: 'load',
-                pm2: 'pm2',
-                driver2: 'driver2',
+                delivered_by_prime_mover: 'pm2',
+                delivered_by_driver: 'driver2',
                 delivered_to: 'delivered_to',
                 remarks: 'remarks',
-                hr_meter_start: 'hr_meter_start',
-                hr_meter_end: 'hr_meter_end',
-                gs_start_date: 'gs_start_date',
-                gs_start_time: 'gs_start_time',
-                gs_end_date: 'gs_end_date',
-                gs_end_time: 'gs_end_time',
-                driver_idNumber: 'driver_idNumber',
-                delivered_by_driverIdNumber: 'driver_idNumber2'
+                genset_hr_meter: 'genset_hr_meter',
+                genset_hr_meter_start: 'hr_meter_start',
+                genset_hr_meter_end: 'hr_meter_end',
+                genset_hr_reading: 'genset_hr_reading',
+                genset_start_date: 'gs_start_date',
+                genset_start_time: 'gs_start_time',
+                genset_end_date: 'gs_end_date',
+                genset_end_time: 'gs_end_time',
+                delivered_by_driverIdNumber: 'driver_idNumber2',
+                refueled: 'refueled'
+            };
+
+            const fallbackMap = {
+                withdrawal_date: ['pullout_location_departure_date'],
+                withdrawal_time: ['pullout_location_departure_time'],
+                end_unloading_start_date: ['end_uploading_date'],
+                end_unloading_start_time: ['end_uploading_time'],
+                end_unloading_finish_date: ['end_uploading_date'],
+                end_unloading_finish_time: ['end_uploading_time']
             };
 
             Object.entries(fieldMap).forEach(([recordKey, inputId]) => {
                 const input = document.getElementById(inputId);
                 if (input) {
-                    input.value = record[recordKey] ?? '';
+                    let value = record[recordKey] ?? '';
+                    if ((value === '' || value === null) && fallbackMap[inputId]) {
+                        const fallbackKey = fallbackMap[inputId].find(key => record[key] !== '' && record[key] != null);
+                        if (fallbackKey) {
+                            value = record[fallbackKey];
+                        }
+                    }
+                    
+                    // Format date fields
+                    if (dateFields.includes(inputId) && value) {
+                        value = formatDateForDisplay(value);
+                    }
+                    
+                    // Format time fields
+                    if (timeFields.includes(inputId) && value) {
+                        value = formatTimeForDisplay(value);
+                    }
+                    
+                    input.value = value;
                 }
             });
         }

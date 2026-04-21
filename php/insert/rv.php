@@ -12,6 +12,57 @@ function validate($data)
     return htmlspecialchars(trim($data));
 }
 
+// Convert display format date (MM/DD/YYYY) to database format (YYYY-MM-DD)
+function convertDateToDb($displayDate)
+{
+    if (empty($displayDate)) return '';
+    
+    // Try to parse M/D/YYYY, MM/DD/YYYY, M/D, or MM/DD formats
+    $parts = explode('/', trim($displayDate));
+    if (count($parts) < 2 || count($parts) > 3) return $displayDate; // Invalid format
+    
+    $month = str_pad($parts[0], 2, '0', STR_PAD_LEFT);
+    $day = str_pad($parts[1], 2, '0', STR_PAD_LEFT);
+    $year = isset($parts[2]) ? $parts[2] : date('Y');
+    
+    // Convert 2-digit year to 4-digit year
+    if (strlen($year) === 2) {
+        $year = '20' . $year;
+    }
+    
+    // Validate date values
+    if (!is_numeric($month) || !is_numeric($day) || !is_numeric($year)) return $displayDate;
+    
+    return "$year-$month-$day";
+}
+
+// Convert display format time (HHMM or HH:MM) to database format (HH:MM)
+function convertTimeToDb($displayTime)
+{
+    if (empty($displayTime)) return '';
+    
+    $time = str_replace(':', '', trim($displayTime));
+    
+    // If it's 3 or 4 digits, assume it's HHMM format
+    if (preg_match('/^\d{3,4}$/', $time)) {
+        $time = str_pad($time, 4, '0', STR_PAD_LEFT);
+        $hh = substr($time, 0, 2);
+        $mm = substr($time, 2, 2);
+        
+        if ((int)$hh > 23 || (int)$mm > 59) return $displayTime;
+        return "$hh:$mm";
+    }
+    
+    // If already in HH:MM format, validate
+    if (preg_match('/^\d{2}:\d{2}$/', $time)) {
+        list($hh, $mm) = explode(':', $time);
+        if ((int)$hh > 23 || (int)$mm > 59) return $displayTime;
+        return $time;
+    }
+    
+    return $displayTime;
+}
+
 function build_rv_route($location)
 {
     $normalized = strtoupper(trim($location));
@@ -60,6 +111,9 @@ if (
 
     $ph_arrival_date = validate($_POST["ph_arrival_date"] ?? "");
     $ph_arrival_time = validate($_POST["ph_arrival_time"] ?? "");
+
+    $delivery_location_arrival_date = validate($_POST["delivery_location_arrival_date"] ?? "");
+    $delivery_location_arrival_time = validate($_POST["delivery_location_arrival_time"] ?? "");
 
     $van_alpha = validate($_POST["van_alpha"] ?? "");
     $van_number = validate($_POST["van_number"] ?? "");
@@ -125,6 +179,10 @@ if (
 
     $genset_hr_meter_start = validate($_POST["genset_hr_meter_start"] ?? "");
     $genset_hr_meter_end = validate($_POST["genset_hr_meter_end"] ?? "");
+    $reference_documents = validate($_POST["reference_documents"] ?? "");
+    $genset_hr_meter = validate($_POST["genset_hr_meter"] ?? "");
+    $genset_hr_reading = validate($_POST["genset_hr_reading"] ?? "");
+    $refueled = validate($_POST["refueled"] ?? "");
 
     $genset_start_date = validate($_POST["genset_start_date"] ?? "");
     $genset_start_time = validate($_POST["genset_start_time"] ?? "");
@@ -132,6 +190,34 @@ if (
     $genset_end_time = validate($_POST["genset_end_time"] ?? "");
     $driver_idNumber = validate($_POST["driver_idNumber"] ?? "");
     $delivered_by_driverIdNumber = validate($_POST["delivered_by_driverIdNumber"] ?? "");
+    
+    // =========================
+    // CONVERT DATES AND TIMES
+    // =========================
+    $pullout_location_arrival_date = convertDateToDb($pullout_location_arrival_date);
+    $pullout_location_arrival_time = convertTimeToDb($pullout_location_arrival_time);
+    $pullout_location_departure_date = convertDateToDb($pullout_location_departure_date);
+    $pullout_location_departure_time = convertTimeToDb($pullout_location_departure_time);
+    $ph_arrival_date = convertDateToDb($ph_arrival_date);
+    $ph_arrival_time = convertTimeToDb($ph_arrival_time);
+    $loaded_van_loading_start_date = convertDateToDb($loaded_van_loading_start_date);
+    $loaded_van_loading_start_time = convertTimeToDb($loaded_van_loading_start_time);
+    $loaded_van_loading_finish_date = convertDateToDb($loaded_van_loading_finish_date);
+    $loaded_van_loading_finish_time = convertTimeToDb($loaded_van_loading_finish_time);
+    $loaded_van_delivery_departure_date = convertDateToDb($loaded_van_delivery_departure_date);
+    $loaded_van_delivery_departure_time = convertTimeToDb($loaded_van_delivery_departure_time);
+    $loaded_van_delivery_arrival_date = convertDateToDb($loaded_van_delivery_arrival_date);
+    $loaded_van_delivery_arrival_time = convertTimeToDb($loaded_van_delivery_arrival_time);
+    $delivery_location_arrival_date = convertDateToDb($delivery_location_arrival_date);
+    $delivery_location_arrival_time = convertTimeToDb($delivery_location_arrival_time);
+    $genset_shutoff_date = convertDateToDb($genset_shutoff_date);
+    $genset_shutoff_time = convertTimeToDb($genset_shutoff_time);
+    $end_uploading_date = convertDateToDb($end_uploading_date);
+    $end_uploading_time = convertTimeToDb($end_uploading_time);
+    $genset_start_date = convertDateToDb($genset_start_date);
+    $genset_start_time = convertTimeToDb($genset_start_time);
+    $genset_end_date = convertDateToDb($genset_end_date);
+    $genset_end_time = convertTimeToDb($genset_end_time);
     
     // Lookup piece rates for both empty and loaded segments
     $piece_rate_empty = operations_lookup_piece_rate($conn, $segment_empty, $activity_empty);
@@ -203,6 +289,8 @@ if (
             pullout_location_departure_time,
             ph_arrival_date,
             ph_arrival_time,
+            delivery_location_arrival_date,
+            delivery_location_arrival_time,
             van_alpha,
             van_number,
             van_name,
@@ -236,6 +324,10 @@ if (
             delivered_remarks,
             genset_hr_meter_start,
             genset_hr_meter_end,
+            reference_documents,
+            genset_hr_meter,
+            genset_hr_reading,
+            refueled,
             genset_start_date,
             genset_start_time,
             genset_end_date,
@@ -254,7 +346,7 @@ if (
             ?,?,?,?,?,?,?,?,?,?,
             ?,?,?,?,?,?,?,?,?,?,
             ?,?,?,?,?,?,?,?,?,?,
-            ?,?,?,?,?,?
+            ?,?,?,?,?,?,?,?,?,?,?,?
         )";
 
         $stmt = $conn->prepare($sql);
@@ -262,9 +354,9 @@ if (
         if (!$stmt) {
             $response["message"] = "Prepare failed: " . $conn->error;
         } else {
-            // 56 fields
+            // 62 fields
             $stmt->bind_param(
-                str_repeat("s", 56),
+                str_repeat("s", 62),
 
                 $entry_type,
                 $segment_empty,
@@ -278,6 +370,8 @@ if (
                 $pullout_location_departure_time,
                 $ph_arrival_date,
                 $ph_arrival_time,
+                $delivery_location_arrival_date,
+                $delivery_location_arrival_time,
                 $van_alpha,
                 $van_number,
                 $van_name,
@@ -311,6 +405,10 @@ if (
                 $delivered_remarks,
                 $genset_hr_meter_start,
                 $genset_hr_meter_end,
+                $reference_documents,
+                $genset_hr_meter,
+                $genset_hr_reading,
+                $refueled,
                 $genset_start_date,
                 $genset_start_time,
                 $genset_end_date,
@@ -321,7 +419,7 @@ if (
                 $billing_sku,
                 $created_by,
                 $driver_idNumber,
-                $delivered_by_driverIdNumber,
+                $delivered_by_driverIdNumber
             );
 
             if ($stmt->execute()) {
@@ -337,8 +435,13 @@ if (
                     "segment" => $segment,
                     "activity" => $activity,
                     "waybill" => $waybill,
+                    "waybill_empty" => $waybill_empty,
+                    "van_alpha" => $van_alpha,
+                    "van_number" => $van_number,
+                    "van_name" => $van_name,
                     "driver" => $driver,
                     "remarks" => $remarks,
+                    "created_date" => date('Y-m-d'),
                     "piece_rate_empty" => $piece_rate_empty,
                     "piece_rate_loaded" => $piece_rate_loaded,
                     "piece_rate" => $piece_rate,

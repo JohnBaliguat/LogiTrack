@@ -11,7 +11,7 @@ if ($id <= 0) {
     exit;
 }
 
-$sql = "SELECT entry_id, entry_type, segment, activity, waybill_date, waybill, evita_farmind, driver, driver_idNumber, departure, arrival, truck, load_quantity_weight, unit_of_measure, deliver_from, delivered_to, remarks, dpc_date, `13_body`, `13_cover`, `13_pads`, `18_body`, `18_cover`, `18_pads`, `13_total`, `18_total`, total_load, fgtr_no FROM operations WHERE entry_id = ?";
+$sql = "SELECT entry_id, entry_type, segment, activity, waybill_date, waybill, evita_farmind, driver, driver_idNumber, departure, arrival, truck, tr, ph, remarks, dpc_date, `13_body`, `13_cover`, `13_pads`, `18_body`, `18_cover`, `18_pads`, `13_total`, `18_total`, other_body, other_cover, other_pads, other_total, total_load, fgtr_no FROM operations WHERE entry_id = ?";
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {

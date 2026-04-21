@@ -1,9 +1,13 @@
 <?php 
 include "php/session-check.php"; 
 include "php/config/config.php";
+include_once "php/helpers/entry_date_filter.php";
 
-$query = "SELECT entry_id, entry_type, segment, activity, remarks, waybill, waybill_date, evita_farmind, driver, departure, arrival, truck, `13_body`, `13_cover`, `13_pads`, `18_body`, `18_cover`, `18_pads`, `13_total`, `18_total`, total_load, fgtr_no, dpc_date FROM operations WHERE entry_type = 'DPC_KDs & OPM ENTRY' AND DATE(created_date) = CURDATE() ORDER BY entry_id DESC";
-$result = mysqli_query($conn, $query);
+$selectedEntryDate = getSelectedEntryDate();
+$stmt = $conn->prepare("SELECT entry_id, entry_type, segment, activity, remarks, waybill, waybill_date, evita_farmind, driver, driver_idNumber, departure, arrival, truck, tr, ph, `13_body`, `13_cover`, `13_pads`, `18_body`, `18_cover`, `18_pads`, `13_total`, `18_total`, other_body, other_cover, other_pads, other_total, total_load, fgtr_no, dpc_date FROM operations WHERE entry_type = 'DPC_KDs & OPM ENTRY' AND DATE(created_date) = ? ORDER BY entry_id DESC");
+$stmt->bind_param("s", $selectedEntryDate);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -37,8 +41,8 @@ $result = mysqli_query($conn, $query);
                         <div class="btn-group" role="group" aria-label="Basic outlined example">
                             <a class="btn btn-outline-secondary" href="abcrv">ABC RV</a>
                             <a class="btn btn-outline-secondary" href="doleRv">Dole RV</a>
-                            <a class="btn btn-outline-secondary" href="sumiRv">Sumi RV</a>
-                            <a class="btn btn-outline-secondary" href="tdcRv">TDC RV</a>
+                            <a class="btn btn-outline-secondary" href="sumiRv">Sumi/Farmined RV</a>
+                            <a class="btn btn-outline-secondary" href="tdcRv">TDC/Good Farmer RV</a>
                             <a class="btn btn-outline-secondary" href="others">Others</a>
                             <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDI & OPM</a>
                             <a class="btn btn-outline-secondary" href="cargoTruck">Cargo Truck</a>
@@ -144,6 +148,22 @@ $result = mysqli_query($conn, $query);
                                         <input type="text" class="form-control" id="eighteen_total" name="eighteen_total" readonly>
                                     </div>
                                     <div class="col-md-6">
+                                        <label for="other_body" class="form-label">OTHER BODY</label>
+                                        <input type="text" class="form-control" id="other_body" name="other_body">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="other_cover" class="form-label">OTHER COVER</label>
+                                        <input type="text" class="form-control" id="other_cover" name="other_cover">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="other_pads" class="form-label">OTHER PADS</label>
+                                        <input type="text" class="form-control" id="other_pads" name="other_pads">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="other_total" class="form-label">OTHER TOTAL</label>
+                                        <input type="text" class="form-control" id="other_total" name="other_total" readonly>
+                                    </div>
+                                    <div class="col-md-6">
                                         <label for="total_load" class="form-label">TOTAL LOAD</label>
                                         <input type="text" class="form-control" id="total_load" name="total_load" readonly>
                                     </div>
@@ -197,6 +217,7 @@ $result = mysqli_query($conn, $query);
                         </div>
                     </div>
                     <div class="card-body">
+                        <?php renderEntryDateFilter($selectedEntryDate); ?>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle" id="entriesTable">
                                 <thead class="table-light">
@@ -214,7 +235,7 @@ $result = mysqli_query($conn, $query);
                                     <?php while ($row = mysqli_fetch_assoc($result)) { ?>
                                     <tr data-id="<?php echo $row['entry_id']; ?>" data-segment="<?php echo htmlspecialchars($row['segment']); ?>" data-activity="<?php echo htmlspecialchars($row['activity']); ?>" data-waybill="<?php echo htmlspecialchars($row['waybill']); ?>" data-driver="<?php echo htmlspecialchars($row['driver']); ?>" data-remarks="<?php echo htmlspecialchars($row['remarks']); ?>">
                                         <td><strong>#<?php echo $row['entry_id']; ?></strong></td>
-                                        <td><?php echo htmlspecialchars(($row['dpc_date'] ?? '') !== '' ? $row['dpc_date'] : ($row['waybill_date'] ?? '')); ?></td>
+                                        <td><?php echo htmlspecialchars(date('m/d/Y', strtotime($row['waybill_date']))); ?></td>
                                         <td><?php echo htmlspecialchars($row['waybill'] ?? ''); ?></td>
                                         <td><?php echo htmlspecialchars($row['truck'] ?? ''); ?></td>
                                         <td><?php echo htmlspecialchars($row['driver'] ?? ''); ?></td>
@@ -265,6 +286,10 @@ $result = mysqli_query($conn, $query);
             const eighteenPadsInput = document.getElementById('eighteen_pads');
             const thirteenTotalInput = document.getElementById('thirteen_total');
             const eighteenTotalInput = document.getElementById('eighteen_total');
+            const otherBodyInput = document.getElementById('other_body');
+            const otherCoverInput = document.getElementById('other_cover');
+            const otherPadsInput = document.getElementById('other_pads');
+            const otherTotalInput = document.getElementById('other_total');
             const totalLoadInput = document.getElementById('total_load');
             const fgtrInput = document.getElementById('fgtrs_no');
             const remarksInput = document.getElementById('remarks');
@@ -289,6 +314,25 @@ $result = mysqli_query($conn, $query);
                 return Number.isFinite(parsed) ? parsed : 0;
             }
 
+            function evaluateExpression(expr) {
+                try {
+                    const sanitized = String(expr ?? '').trim();
+                    if (!sanitized) return 0;
+                    
+                    // Allow only numbers, basic operators, and parentheses
+                    if (!/^[\d+\-*/.()]+$/.test(sanitized)) {
+                        return toNumber(sanitized);
+                    }
+                    
+                    // Use Function instead of eval for slightly safer evaluation
+                    const result = Function('"use strict"; return (' + sanitized + ')')();
+                    return Number.isFinite(result) ? result : toNumber(sanitized);
+                } catch (e) {
+                    // If expression fails to parse, treat as regular number
+                    return toNumber(expr);
+                }
+            }
+
             function formatCalculatedValue(value) {
                 if (!Number.isFinite(value)) {
                     return '';
@@ -301,17 +345,22 @@ $result = mysqli_query($conn, $query);
 
             function calculateDpcTotals() {
                 const thirteenTotal =
-                    toNumber(thirteenBodyInput.value) +
-                    toNumber(thirteenCoverInput.value) +
-                    toNumber(thirteenPadsInput.value);
+                    evaluateExpression(thirteenBodyInput.value) +
+                    evaluateExpression(thirteenCoverInput.value) +
+                    evaluateExpression(thirteenPadsInput.value);
                 const eighteenTotal =
-                    toNumber(eighteenBodyInput.value) +
-                    toNumber(eighteenCoverInput.value) +
-                    toNumber(eighteenPadsInput.value);
-                const totalLoad = thirteenTotal + eighteenTotal;
+                    evaluateExpression(eighteenBodyInput.value) +
+                    evaluateExpression(eighteenCoverInput.value) +
+                    evaluateExpression(eighteenPadsInput.value);
+                const otherTotal =
+                    evaluateExpression(otherBodyInput.value) +
+                    evaluateExpression(otherCoverInput.value) +
+                    evaluateExpression(otherPadsInput.value);
+                const totalLoad = thirteenTotal + eighteenTotal + otherTotal;
 
                 thirteenTotalInput.value = formatCalculatedValue(thirteenTotal);
                 eighteenTotalInput.value = formatCalculatedValue(eighteenTotal);
+                otherTotalInput.value = formatCalculatedValue(otherTotal);
                 totalLoadInput.value = formatCalculatedValue(totalLoad);
             }
 
@@ -329,7 +378,8 @@ $result = mysqli_query($conn, $query);
                         return;
                     }
 
-                    const normalizedValue = toNumber(input.value) / divisor;
+                    const evaluatedValue = evaluateExpression(input.value);
+                    const normalizedValue = evaluatedValue / divisor;
                     input.value = formatCalculatedValue(normalizedValue);
                     delete input.dataset.needsNormalize;
                     calculateDpcTotals();
@@ -342,6 +392,9 @@ $result = mysqli_query($conn, $query);
             attachCalculatedInput(eighteenBodyInput, 20);
             attachCalculatedInput(eighteenCoverInput, 20);
             attachCalculatedInput(eighteenPadsInput, 200);
+            attachCalculatedInput(otherBodyInput, 20);
+            attachCalculatedInput(otherCoverInput, 20);
+            attachCalculatedInput(otherPadsInput, 200);
 
             calculateDpcTotals();
 
@@ -669,6 +722,86 @@ $result = mysqli_query($conn, $query);
                 }
             }
 
+            function convertDateToDatabase(displayDate) {
+                if (!displayDate || displayDate === '') return '';
+                
+                // Try to parse M/D/YYYY, MM/DD/YYYY, M/D, or MM/DD formats
+                const parts = displayDate.trim().split('/');
+                if (parts.length < 2 || parts.length > 3) return displayDate; // Invalid format, return as-is
+                
+                let month = parts[0];
+                let day = parts[1];
+                let year = parts[2];
+                
+                // Pad month and day with leading zeros if needed
+                month = month.padStart(2, '0');
+                day = day.padStart(2, '0');
+                
+                // If year is not provided, use current year
+                if (!year) {
+                    const today = new Date();
+                    year = today.getFullYear().toString();
+                } else if (year.length === 2) {
+                    // Convert 2-digit year to 4-digit year (assume 00-99 is 2000-2099)
+                    year = '20' + year;
+                }
+                
+                // Validate date values
+                if (isNaN(month) || isNaN(day) || isNaN(year)) return displayDate;
+                
+                // Return in YYYY-MM-DD format
+                return `${year}-${month}-${day}`;
+            }
+
+            // Helper function to convert YYYY-MM-DD to MM/DD/YYYY for display
+            function formatDateForDisplay(dbDate) {
+                if (!dbDate || dbDate === '') return '';
+                const match = dbDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (!match) return dbDate; // Return as-is if not in expected format
+                return `${match[2]}/${match[3]}/${match[1]}`; // MM/DD/YYYY
+            }
+
+            // Convert user input datetime (MM/DD/YYYY HH:MM format) to database format (YYYY-MM-DD HH:MM)
+            function convertDatetimeToDatabase(displayDatetime) {
+                if (!displayDatetime || displayDatetime === '') return '';
+                
+                // Match formats like "04/19/2026 09:00"
+                const match = displayDatetime.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})\s+(\d{1,2}):(\d{2})$/);
+                if (!match) return displayDatetime; // Invalid format, return as-is
+                
+                let month = match[1].padStart(2, '0');
+                let day = match[2].padStart(2, '0');
+                let year = match[3];
+                let hours = match[4].padStart(2, '0');
+                let minutes = match[5];
+                
+                // Handle year conversion (already 4 digits in this format)
+                if (year.length === 2) {
+                    year = '20' + year;
+                }
+                
+                // Return in YYYY-MM-DD HH:MM format
+                return `${year}-${month}-${day} ${hours}:${minutes}`;
+            }
+
+            // Convert database datetime (YYYY-MM-DD HH:MM or YYYY-MM-DD HH:MM:SS) to display format (MM/DD/YYYY HH:MM)
+            function formatDatetimeForDisplay(dbDatetime) {
+                if (!dbDatetime || dbDatetime === '') return '';
+                
+                // Match formats like "2026-04-19 14:30" or "2026-04-19 14:30:00"
+                const match = dbDatetime.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+                if (!match) return dbDatetime; // Return as-is if not in expected format
+                
+                const month = match[2];
+                const day = match[3];
+                const year = match[1];
+                const hours = match[4];
+                const minutes = match[5];
+                
+                // Return in MM/DD/YYYY HH:MM format
+                return `${month}/${day}/${year} ${hours}:${minutes}`;
+            }
+
             function resetForm() {
                 form.reset();
                 dataIdInput.value = '';
@@ -679,13 +812,13 @@ $result = mysqli_query($conn, $query);
                 dataIdInput.value = record.entry_id || '';
                 segmentInput.value = record.segment || '';
                 activityInput.value = record.activity || '';
-                dateInput.value = record.waybill_date || '';
+                dateInput.value = formatDateForDisplay(record.waybill_date) || '';
                 waybillInput.value = record.waybill || '';
                 evitaInput.value = record.evita_farmind || '';
                 driverInput.value = record.driver || '';
                 driverIdInput.value = record.driver_idNumber || '';
-                departureInput.value = record.departure || '';
-                arrivalInput.value = record.arrival || '';
+                departureInput.value = formatDatetimeForDisplay(record.departure) || '';
+                arrivalInput.value = formatDatetimeForDisplay(record.arrival) || '';
                 truckInput.value = record.truck || '';
                 trInput.value = record.tr || '';
                 phInput.value = record.ph || '';
@@ -696,7 +829,11 @@ $result = mysqli_query($conn, $query);
                 eighteenCoverInput.value = record['18_cover'] || '';
                 eighteenPadsInput.value = record['18_pads'] || '';
                 calculateDpcTotals();
-                totalLoadInput.value = record.total_load || '';
+                otherBodyInput.value = record.other_body || '';
+                otherCoverInput.value = record.other_cover || '';
+                otherPadsInput.value = record.other_pads || '';
+                otherTotalInput.value = record.other_total || '';
+                calculateDpcTotals();
                 fgtrInput.value = record.fgtr_no || '';
                 remarksInput.value = record.remarks || '';
                 dpcDateInput.value = record.dpc_date || '';
@@ -705,12 +842,12 @@ $result = mysqli_query($conn, $query);
             }
 
             function getTableRowData(record) {
+                const displayDate = record.dpc_date || record.waybill_date || '';
                 return [
-                    '<input type="checkbox" class="form-check-input row-checkbox">',
                     `<strong>#${record.entry_id}</strong>`,
-                    record.segment || '',
-                    record.activity || '',
+                    displayDate,
                     record.waybill || '',
+                    record.truck || '',
                     record.driver || '',
                     record.remarks || '',
                     `<div class="btn-group btn-group-sm">
@@ -796,13 +933,13 @@ $result = mysqli_query($conn, $query);
                 payload.append('action', action);
                 payload.append('segment', segmentInput.value.trim());
                 payload.append('activity', activityInput.value.trim());
-                payload.append('date', dateInput.value);
+                payload.append('date', convertDateToDatabase(dateInput.value));
                 payload.append('waybill', waybillInput.value.trim());
                 payload.append('evita_farmind', evitaInput.value.trim());
                 payload.append('driver', driverInput.value.trim());
                 payload.append('driver_idNumber', driverIdInput.value.trim());
-                payload.append('departure', departureInput.value);
-                payload.append('arrival', arrivalInput.value);
+                payload.append('departure', convertDatetimeToDatabase(departureInput.value));
+                payload.append('arrival', convertDatetimeToDatabase(arrivalInput.value));
                 payload.append('truck', truckInput.value.trim());
                 payload.append('tr', trInput.value.trim());
                 payload.append('ph', phInput.value.trim());
@@ -814,6 +951,10 @@ $result = mysqli_query($conn, $query);
                 payload.append('eighteen_pads', eighteenPadsInput.value.trim());
                 payload.append('thirteen_total', thirteenTotalInput.value.trim());
                 payload.append('eighteen_total', eighteenTotalInput.value.trim());
+                payload.append('other_body', otherBodyInput.value.trim());
+                payload.append('other_cover', otherCoverInput.value.trim());
+                payload.append('other_pads', otherPadsInput.value.trim());
+                payload.append('other_total', otherTotalInput.value.trim());
                 payload.append('total_load', totalLoadInput.value.trim());
                 payload.append('fgtrs_no', fgtrInput.value.trim());
                 payload.append('remarks', remarksInput.value.trim());

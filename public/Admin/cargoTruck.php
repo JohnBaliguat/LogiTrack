@@ -1,9 +1,13 @@
 <?php 
 include "php/session-check.php"; 
 include "php/config/config.php";
+include_once "php/helpers/entry_date_filter.php";
 
-$query = "SELECT entry_id, entry_type, segment, activity, remarks, waybill, waybill_date, truck, driver, customer_ph, outside, compound, total_trips, operations, deliver_from, delivered_to, cargo_date FROM operations WHERE entry_type = 'CARGO TRUCK ENTRY' AND DATE(created_date) = CURDATE() ORDER BY entry_id DESC";
-$result = mysqli_query($conn, $query);
+$selectedEntryDate = getSelectedEntryDate();
+$stmt = $conn->prepare("SELECT entry_id, entry_type, segment, activity, remarks, waybill, waybill_date, truck, driver, customer_ph, outside, compound, total_trips, operations, deliver_from, delivered_to, cargo_date FROM operations WHERE entry_type = 'CARGO TRUCK ENTRY' AND DATE(created_date) = ? ORDER BY entry_id DESC");
+$stmt->bind_param("s", $selectedEntryDate);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -37,8 +41,8 @@ $result = mysqli_query($conn, $query);
                         <div class="btn-group" role="group" aria-label="Basic outlined example">
                             <a class="btn btn-outline-secondary" href="abcrv">ABC RV</a>
                             <a class="btn btn-outline-secondary" href="doleRv">Dole RV</a>
-                            <a class="btn btn-outline-secondary" href="sumiRv">Sumi RV</a>
-                            <a class="btn btn-outline-secondary" href="tdcRv">TDC RV</a>
+                            <a class="btn btn-outline-secondary" href="sumiRv">Sumi/Farmined RV</a>
+                            <a class="btn btn-outline-secondary" href="tdcRv">TDC/Good Farmer RV</a>
                             <a class="btn btn-outline-secondary" href="others">Others</a>
                             <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDI & OPM</a>
                             <a class="btn btn-outline-secondary" href="cargoTruck">Cargo Truck</a>
@@ -165,6 +169,7 @@ $result = mysqli_query($conn, $query);
                         </div>
                     </div>
                     <div class="card-body">
+                        <?php renderEntryDateFilter($selectedEntryDate); ?>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle" id="entriesTable">
                                 <thead class="table-light">
@@ -571,12 +576,12 @@ $result = mysqli_query($conn, $query);
             }
 
             function getTableRowData(record) {
+                const displayDate = record.cargo_date || record.waybill_date || '';
                 return [
-                    '<input type="checkbox" class="form-check-input row-checkbox">',
                     `<strong>#${record.entry_id}</strong>`,
-                    record.segment || '',
-                    record.activity || '',
+                    displayDate,
                     record.waybill || '',
+                    record.truck || '',
                     record.driver || '',
                     record.remarks || '',
                     `<div class="btn-group btn-group-sm">
