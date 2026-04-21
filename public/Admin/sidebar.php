@@ -40,6 +40,12 @@
                                 <span>Payroll</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="performance" id="pfnav">
+                                <i class="bi bi-graph-up-arrow"></i>
+                                <span>Performance</span>
+                            </a>
+                        </li>
                         <?php } ?>
                         <?php if ($role === "Admin" || $role === "Billing") { ?>
                         <li class="nav-item">
@@ -66,6 +72,12 @@
                             <a class="nav-link" href="users" id="unav">
                                 <i class="bi bi-people"></i>
                                 <span>Users</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="drivers" id="drnav">
+                                <i class="bi bi-person-vcard"></i>
+                                <span>Drivers</span>
                             </a>
                         </li>
                         <li class="nav-item">

@@ -1,4 +1,39 @@
-<?php include "php/session-check.php"; ?>
+<?php
+include "php/session-check.php";
+
+$profile = null;
+$user_id = (int) ($_SESSION["user_id"] ?? 0);
+
+if ($user_id > 0) {
+    $stmt = $conn->prepare(
+        "SELECT `user_id`, `user_idNumber`, `user_name`, `user_fname`, `user_lname`, `user_mname`, `user_email`, `user_type`, `user_image`, `user_accountStat`, `user_code`, `user_address`, `user_city`, `user_country`, `user_bio`, `user_contact` FROM `user` WHERE `user_id` = ?",
+    );
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $profile = $result ? $result->fetch_assoc() : null;
+    $stmt->close();
+}
+
+$fullName = trim(
+    ($profile["user_fname"] ?? "") .
+        " " .
+        ($profile["user_mname"] ?? "") .
+        " " .
+        ($profile["user_lname"] ?? ""),
+);
+$fullName = preg_replace('/\s+/', ' ', $fullName);
+$profileImage = !empty($profile["user_image"])
+    ? $profile["user_image"]
+    : "https://ui-avatars.com/api/?name=" .
+        urlencode($fullName ?: ($_SESSION["user_name"] ?? "User")) .
+        "&background=0D6EFD&color=fff&size=150";
+$locationText = trim(
+    ($profile["user_city"] ?? "") .
+        (!empty($profile["user_city"]) && !empty($profile["user_country"]) ? ", " : "") .
+        ($profile["user_country"] ?? ""),
+);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,30 +64,25 @@
                         <div class="card">
                             <div class="card-body text-center">
                                 <div class="profile-avatar-large mb-3">
-                                    <img id="profileImage" src="https://ui-avatars.com/api/?name=John+Doe&background=0D6EFD&color=fff&size=150" alt="Profile" class="rounded-circle">
+                                    <img id="profileImage" src="<?php echo htmlspecialchars(
+                                        $profileImage,
+                                    ); ?>" alt="Profile" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
                                     <button class="btn btn-sm btn-primary avatar-change-btn" data-bs-toggle="modal" data-bs-target="#uploadImageModal">
                                         <i class="bi bi-camera"></i>
                                     </button>
                                 </div>
-                                <h4 class="fw-bold mb-1">John Doe</h4>
-                                <p class="text-muted mb-3">Administrator</p>
+                                <h4 class="fw-bold mb-1" id="profileDisplayName"><?php echo htmlspecialchars(
+                                    $fullName ?: "User",
+                                ); ?></h4>
+                                <p class="text-muted mb-3" id="profileDisplayRole"><?php echo htmlspecialchars(
+                                    $profile["user_type"] ?? "-",
+                                ); ?></p>
                                 <div class="d-flex gap-2 justify-content-center mb-3">
-                                    <span class="badge bg-success">Active</span>
-                                    <span class="badge bg-primary">Verified</span>
-                                </div>
-                                <div class="profile-stats">
-                                    <div class="stat-item">
-                                        <h5 class="fw-bold mb-0">248</h5>
-                                        <small class="text-muted">Entries</small>
-                                    </div>
-                                    <div class="stat-item">
-                                        <h5 class="fw-bold mb-0">89%</h5>
-                                        <small class="text-muted">Completion</small>
-                                    </div>
-                                    <div class="stat-item">
-                                        <h5 class="fw-bold mb-0">156</h5>
-                                        <small class="text-muted">Days Active</small>
-                                    </div>
+                                    <span class="badge bg-<?php echo ($profile["user_accountStat"] ?? "") === "Active"
+                                        ? "success"
+                                        : "secondary"; ?>" id="profileDisplayStatus"><?php echo htmlspecialchars(
+    $profile["user_accountStat"] ?? "Unknown",
+); ?></span>
                                 </div>
                             </div>
                         </div>
@@ -66,28 +96,36 @@
                                     <i class="bi bi-envelope text-muted"></i>
                                     <div>
                                         <small class="text-muted d-block">Email</small>
-                                        <span>john.doe@example.com</span>
+                                        <span id="infoEmail"><?php echo htmlspecialchars(
+                                            $profile["user_email"] ?? "-",
+                                        ); ?></span>
+                                    </div>
+                                </div>
+                                <div class="info-item">
+                                    <i class="bi bi-person-badge text-muted"></i>
+                                    <div>
+                                        <small class="text-muted d-block">ID Number</small>
+                                        <span id="infoIdNumber"><?php echo htmlspecialchars(
+                                            $profile["user_idNumber"] ?? "-",
+                                        ); ?></span>
                                     </div>
                                 </div>
                                 <div class="info-item">
                                     <i class="bi bi-phone text-muted"></i>
                                     <div>
-                                        <small class="text-muted d-block">Phone</small>
-                                        <span>+1 234 567 8900</span>
+                                        <small class="text-muted d-block">Contact</small>
+                                        <span id="infoContact"><?php echo htmlspecialchars(
+                                            $profile["user_contact"] ?? "-",
+                                        ); ?></span>
                                     </div>
                                 </div>
                                 <div class="info-item">
                                     <i class="bi bi-geo-alt text-muted"></i>
                                     <div>
                                         <small class="text-muted d-block">Location</small>
-                                        <span>New York, USA</span>
-                                    </div>
-                                </div>
-                                <div class="info-item">
-                                    <i class="bi bi-calendar text-muted"></i>
-                                    <div>
-                                        <small class="text-muted d-block">Joined</small>
-                                        <span>January 15, 2024</span>
+                                        <span id="infoLocation"><?php echo htmlspecialchars(
+                                            $locationText ?: "-",
+                                        ); ?></span>
                                     </div>
                                 </div>
                             </div>
@@ -116,48 +154,75 @@
                                             <div class="row g-3">
                                                 <div class="col-md-6">
                                                     <label for="firstName" class="form-label">First Name</label>
-                                                    <input type="text" class="form-control" name="firstName" id="firstName" required>
+                                                    <input type="text" class="form-control" name="firstName" id="firstName" value="<?php echo htmlspecialchars(
+                                                        $profile["user_fname"] ?? "",
+                                                    ); ?>" required>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label for="lastName" class="form-label">Last Name</label>
-                                                    <input type="text" class="form-control" name="lastName" id="lastName" required>
+                                                    <input type="text" class="form-control" name="lastName" id="lastName" value="<?php echo htmlspecialchars(
+                                                        $profile["user_lname"] ?? "",
+                                                    ); ?>" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="middleName" class="form-label">Middle Name</label>
+                                                    <input type="text" class="form-control" name="middleName" id="middleName" value="<?php echo htmlspecialchars(
+                                                        $profile["user_mname"] ?? "",
+                                                    ); ?>">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="username" class="form-label">Username</label>
+                                                    <input type="text" class="form-control" name="username" id="username" value="<?php echo htmlspecialchars(
+                                                        $profile["user_name"] ?? "",
+                                                    ); ?>" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="idNumber" class="form-label">ID Number</label>
+                                                    <input type="text" class="form-control" name="idNumber" id="idNumber" value="<?php echo htmlspecialchars(
+                                                        $profile["user_idNumber"] ?? "",
+                                                    ); ?>" required>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label for="email" class="form-label">Email</label>
-                                                    <input type="email" class="form-control" name="email" id="email" required>
+                                                    <input type="email" class="form-control" name="email" id="email" value="<?php echo htmlspecialchars(
+                                                        $profile["user_email"] ?? "",
+                                                    ); ?>" required>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label for="phone" class="form-label">Phone</label>
-                                                    <input type="tel" class="form-control" name="phone" id="phone">
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label for="department" class="form-label">Department</label>
-                                                    <select class="form-select" name="department" id="department">
-                                                        <option value="admin" selected>Administration</option>
-                                                        <option value="sales">Sales</option>
-                                                        <option value="hr">Human Resources</option>
-                                                        <option value="it">IT</option>
-                                                    </select>
+                                                    <label for="contact" class="form-label">Contact</label>
+                                                    <input type="tel" class="form-control" name="contact" id="contact" value="<?php echo htmlspecialchars(
+                                                        $profile["user_contact"] ?? "",
+                                                    ); ?>">
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label for="role" class="form-label">Role</label>
-                                                    <input type="text" class="form-control" id="role" readonly>
+                                                    <input type="text" class="form-control" id="role" value="<?php echo htmlspecialchars(
+                                                        $profile["user_type"] ?? "",
+                                                    ); ?>" readonly>
                                                 </div>
                                                 <div class="col-12">
                                                     <label for="address" class="form-label">Address</label>
-                                                    <input type="text" class="form-control" name="address" id="address">
+                                                    <input type="text" class="form-control" name="address" id="address" value="<?php echo htmlspecialchars(
+                                                        $profile["user_address"] ?? "",
+                                                    ); ?>">
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label for="city" class="form-label">City</label>
-                                                    <input type="text" class="form-control" name="city" id="city">
+                                                    <input type="text" class="form-control" name="city" id="city" value="<?php echo htmlspecialchars(
+                                                        $profile["user_city"] ?? "",
+                                                    ); ?>">
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label for="country" class="form-label">Country</label>
-                                                    <input type="text" class="form-control" name="country" id="country">
+                                                    <input type="text" class="form-control" name="country" id="country" value="<?php echo htmlspecialchars(
+                                                        $profile["user_country"] ?? "",
+                                                    ); ?>">
                                                 </div>
                                                 <div class="col-12">
                                                     <label for="bio" class="form-label">Bio</label>
-                                                    <textarea class="form-control" name="bio" id="bio" rows="3"></textarea>
+                                                    <textarea class="form-control" name="bio" id="bio" rows="3"><?php echo htmlspecialchars(
+                                                        $profile["user_bio"] ?? "",
+                                                    ); ?></textarea>
                                                 </div>
                                                 <div class="col-12">
                                                     <button type="submit" class="btn btn-primary"><i class="bi bi-save me-2"></i>Save Changes</button>
@@ -362,12 +427,32 @@
                             const user = response.user;
                             $('#firstName').val(user.user_fname);
                             $('#lastName').val(user.user_lname);
+                            $('#middleName').val(user.user_mname || '');
+                            $('#username').val(user.user_name || '');
+                            $('#idNumber').val(user.user_idNumber || '');
                             $('#email').val(user.user_email);
+                            $('#contact').val(user.user_contact || '');
                             $('#role').val(user.user_type);
+                            $('#address').val(user.user_address || '');
+                            $('#city').val(user.user_city || '');
+                            $('#country').val(user.user_country || '');
+                            $('#bio').val(user.user_bio || '');
+
+                            const fullName = [user.user_fname, user.user_mname, user.user_lname].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+                            $('#profileDisplayName').text(fullName || 'User');
+                            $('#profileDisplayRole').text(user.user_type || '-');
+                            $('#profileDisplayStatus').text(user.user_accountStat || 'Unknown')
+                                .removeClass('bg-success bg-secondary')
+                                .addClass(user.user_accountStat === 'Active' ? 'bg-success' : 'bg-secondary');
+                            $('#infoEmail').text(user.user_email || '-');
+                            $('#infoIdNumber').text(user.user_idNumber || '-');
+                            $('#infoContact').text(user.user_contact || '-');
+                            $('#infoLocation').text([user.user_city, user.user_country].filter(Boolean).join(', ') || '-');
                             
                             // Update profile image
-                            let profileImg = user.user_fname + '+' + user.user_lname;
-                            let imgSrc = 'https://ui-avatars.com/api/?name=' + profileImg + '&background=0D6EFD&color=fff&size=150';
+                            let imgSrc = user.user_image
+                                ? user.user_image
+                                : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fullName || user.user_name || 'User') + '&background=0D6EFD&color=fff&size=150';
                             $('#profileImage').attr('src', imgSrc);
                         }
                     }
@@ -494,6 +579,8 @@
                                 text: response.message,
                                 icon: 'success',
                                 confirmButtonColor: '#0d6efd'
+                            }).then(() => {
+                                loadProfileData();
                             });
                         } else {
                             Swal.fire({

@@ -92,6 +92,7 @@ function isRouteAllowed(string $route, string $userType): bool
             "monitoring",
             "payroll",
             "payroll-driver",
+            "performance",
             "billing",
             "settings",
             "profile",
@@ -105,6 +106,7 @@ function isRouteAllowed(string $route, string $userType): bool
             "sumiRv",
             "tdcRv",
             "dryVan",
+            "drivers",
         ],
         "User" => [
             "dashboard",
@@ -153,6 +155,7 @@ $routes = [
     "monitoring" => "public/Admin/monitoring.php",
     "payroll" => "public/Admin/payroll.php",
     "payroll-driver" => "public/Admin/payroll-driver.php",
+    "performance" => "public/Admin/performance.php",
     "billing" => "public/Admin/billing.php",
     "settings" => "public/Admin/settings.php",
     "profile" => "public/Admin/profile.php",
@@ -168,6 +171,7 @@ $routes = [
     "sumiRv" => "public/Admin/sumiRv.php",
     "tdcRv" => "public/Admin/tdcRv.php",
     "dryVan" => "public/Admin/dryVan.php",
+    "drivers" => "public/Admin/drivers.php",
 ];
 
 if (isLoggedIn()) {

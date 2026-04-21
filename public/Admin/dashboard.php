@@ -87,8 +87,8 @@
                     <div class="col-xl-8">
                         <div class="card">
                             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">Entry Activity</h5>
-                                <small class="text-muted">Last 7 days</small>
+                                <h5 class="mb-0">Operations Count by Created Date</h5>
+                                <small class="text-muted">All available operation dates</small>
                             </div>
                             <div class="card-body">
                                 <canvas id="activityChart" height="100"></canvas>
@@ -266,7 +266,7 @@
                     data: {
                         labels: chartData.labels || [],
                         datasets: [{
-                            label: 'Entries',
+                            label: 'Operations',
                             data: chartData.values || [],
                             borderColor: '#0d6efd',
                             backgroundColor: 'rgba(13, 110, 253, 0.12)',

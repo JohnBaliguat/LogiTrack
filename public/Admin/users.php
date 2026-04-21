@@ -4,7 +4,7 @@ include "php/config/config.php";
 
 // Fetch all users
 $sql =
-    "SELECT `user_id`, `user_name`, `user_fname`, `user_lname`, `user_mname`, `user_email`, `user_pass`, `user_type`, `user_image`, `user_accountStat`, `user_code` FROM `user`";
+    "SELECT `user_id`, `user_name`, `user_fname`, `user_lname`, `user_mname`, `user_email`, `user_pass`, `user_type`, `user_image`, `user_accountStat`, `user_code`, `user_idNumber` FROM `user`";
 $result = $conn->query($sql);
 $users = [];
 if ($result) {
@@ -160,7 +160,31 @@ foreach ($users as $user) {
                                     <?php foreach ($users as $user) { ?>
                                     <tr data-user-id="<?php echo $user[
                                         "user_id"
-                                    ]; ?>">
+                                    ]; ?>"
+                                        data-user-name="<?php echo htmlspecialchars(
+                                            $user["user_name"],
+                                        ); ?>"
+                                        data-user-fname="<?php echo htmlspecialchars(
+                                            $user["user_fname"],
+                                        ); ?>"
+                                        data-user-lname="<?php echo htmlspecialchars(
+                                            $user["user_lname"],
+                                        ); ?>"
+                                        data-user-mname="<?php echo htmlspecialchars(
+                                            $user["user_mname"],
+                                        ); ?>"
+                                        data-user-email="<?php echo htmlspecialchars(
+                                            $user["user_email"],
+                                        ); ?>"
+                                        data-user-type="<?php echo htmlspecialchars(
+                                            $user["user_type"],
+                                        ); ?>"
+                                        data-user-status="<?php echo htmlspecialchars(
+                                            $user["user_accountStat"],
+                                        ); ?>"
+                                        data-user-idnumber="<?php echo htmlspecialchars(
+                                            $user["user_idNumber"] ?? "",
+                                        ); ?>">
                                         <td><input type="checkbox" class="form-check-input"></td>
                                         <td>
                                             <div class="d-flex align-items-center">
@@ -177,8 +201,11 @@ foreach ($users as $user) {
                                                             " " .
                                                             $user["user_lname"],
                                                     ); ?></strong>
-                                                    <br><small class="text-muted">ID: <?php echo htmlspecialchars(
-                                                        $user["user_code"],
+                                                    <br><small class="text-muted">Username: <?php echo htmlspecialchars(
+                                                        $user["user_name"],
+                                                    ); ?></small>
+                                                    <br><small class="text-muted">ID No.: <?php echo htmlspecialchars(
+                                                        $user["user_idNumber"] ?? "-",
                                                     ); ?></small>
                                                 </div>
                                             </div>
@@ -205,8 +232,8 @@ foreach ($users as $user) {
                                         <td>
                                             <div class="btn-group btn-group-sm">
 
-                                                <button class="btn btn-outline-primary" title="Edit" data-bs-toggle="modal" data-bs-target="#editUserModal"><i class="bi bi-pencil"></i></button>
-                                                <button class="btn btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                                <button class="btn btn-outline-primary btn-edit-user" title="Edit" data-bs-toggle="modal" data-bs-target="#editUserModal"><i class="bi bi-pencil"></i></button>
+                                                <button class="btn btn-outline-danger btn-delete-user" title="Delete"><i class="bi bi-trash"></i></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -246,6 +273,10 @@ foreach ($users as $user) {
                             <div class="col-md-6">
                                 <label for="newUsername" class="form-label">Username</label>
                                 <input type="text" class="form-control" name="username" id="newUsername" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="newIdNumber" class="form-label">ID Number</label>
+                                <input type="text" class="form-control" name="idNumber" id="newIdNumber" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="newEmail" class="form-label">Email</label>
@@ -308,6 +339,14 @@ foreach ($users as $user) {
                             <div class="col-md-6">
                                 <label for="editMiddleName" class="form-label">Middle Name</label>
                                 <input type="text" class="form-control" name="middleName" id="editMiddleName">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editUsername" class="form-label">Username</label>
+                                <input type="text" class="form-control" name="username" id="editUsername" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editIdNumber" class="form-label">ID Number</label>
+                                <input type="text" class="form-control" name="idNumber" id="editIdNumber" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="editEmail" class="form-label">Email</label>
@@ -479,7 +518,7 @@ foreach ($users as $user) {
 
             $.ajax({
                 type: 'POST',
-                url: 'users.php',
+                url: 'php/delete/user.php',
                 data: formData,
                 contentType: false,
                 processData: false,
@@ -518,33 +557,32 @@ foreach ($users as $user) {
         });
 
         // Edit button click handler
-        $(document).on('click', '.btn-outline-primary', function() {
+        $(document).on('click', '.btn-edit-user', function() {
             const row = $(this).closest('tr');
             const userId = row.data('user-id');
-            const cells = row.find('td');
-
-            // Extract data from table row
-            const userName = cells.eq(1).find('strong').text();
-            const userEmail = cells.eq(2).text();
-            const userType = cells.eq(3).text().trim();
-            const userStatus = cells.eq(5).text().trim();
-
-            // Split name
-            const nameParts = userName.split(' ');
-            const fname = nameParts[0];
-            const lname = nameParts.slice(1).join(' ');
+            const fname = row.data('user-fname') || '';
+            const lname = row.data('user-lname') || '';
+            const mname = row.data('user-mname') || '';
+            const username = row.data('user-name') || '';
+            const idNumber = row.data('user-idnumber') || '';
+            const userEmail = row.data('user-email') || '';
+            const userType = row.data('user-type') || '';
+            const userStatus = row.data('user-status') || '';
 
             // Populate edit form
             $('#editUserId').val(userId);
             $('#editFirstName').val(fname);
             $('#editLastName').val(lname);
+            $('#editMiddleName').val(mname);
+            $('#editUsername').val(username);
+            $('#editIdNumber').val(idNumber);
             $('#editEmail').val(userEmail);
             $('#editRole').val(userType);
             $('#editStatus').val(userStatus);
         });
 
         // Delete button click handler
-        $(document).on('click', '.btn-outline-danger', function(e) {
+        $(document).on('click', '.btn-delete-user', function(e) {
             e.preventDefault();
             const row = $(this).closest('tr');
             const userId = row.data('user-id');

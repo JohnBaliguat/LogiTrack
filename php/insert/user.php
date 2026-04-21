@@ -18,31 +18,32 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['a
     $mname = validate($_POST['middleName'] ?? '');
     $email = validate($_POST['email'] ?? '');
     $username = validate($_POST['username'] ?? '');
+    $idNumber = validate($_POST['idNumber'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirmPassword = $_POST['confirmPassword'] ?? '';
     $user_type = validate($_POST['role'] ?? '');
     $accountStat = validate($_POST['status'] ?? 'Active');
     $user_code = 'USR' . rand(100000, 999999);
     
-    if(empty($fname) || empty($lname) || empty($email) || empty($username) || empty($password)) {
+    if(empty($fname) || empty($lname) || empty($email) || empty($username) || empty($idNumber) || empty($password)) {
         $response['message'] = "All fields are required";
     } elseif($password !== $confirmPassword) {
         $response['message'] = "Passwords do not match";
     } else {
         // Check if user already exists
-        $check_sql = "SELECT user_id FROM `user` WHERE user_name = ?";
+        $check_sql = "SELECT user_id FROM `user` WHERE user_name = ? OR user_idNumber = ?";
         $check_stmt = $conn->prepare($check_sql);
-        $check_stmt->bind_param("s", $username);
+        $check_stmt->bind_param("ss", $username, $idNumber);
         $check_stmt->execute();
         $check_result = $check_stmt->get_result();
         
         if($check_result->num_rows > 0) {
-            $response['message'] = "Username already exists";
+            $response['message'] = "Username or ID Number already exists";
         } else {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $insert_sql = "INSERT INTO `user` (`user_name`, `user_fname`, `user_lname`, `user_mname`, `user_email`, `user_pass`, `user_type`, `user_accountStat`, `user_code`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $insert_sql = "INSERT INTO `user` (`user_name`, `user_fname`, `user_lname`, `user_mname`, `user_email`, `user_pass`, `user_type`, `user_accountStat`, `user_code`, `user_idNumber`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $insert_stmt = $conn->prepare($insert_sql);
-            $insert_stmt->bind_param("sssssssss", $username, $fname, $lname, $mname, $email, $hashedPassword, $user_type, $accountStat, $user_code);
+            $insert_stmt->bind_param("ssssssssss", $username, $fname, $lname, $mname, $email, $hashedPassword, $user_type, $accountStat, $user_code, $idNumber);
             
             if($insert_stmt->execute()) {
                 $response['success'] = true;

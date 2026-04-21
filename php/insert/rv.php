@@ -227,8 +227,8 @@ if (
     $route2 = build_rv_route($delivered_to);
     $billing_sku = build_rv_billing_sku($shipper, $ph, $route1, $route2);
 
-    $created_by = isset($_SESSION["user_name"])
-        ? validate($_SESSION["user_name"])
+    $created_by = isset($_SESSION["user_idNumber"])
+        ? validate($_SESSION["user_idNumber"])
         : "system";
 
     // =========================

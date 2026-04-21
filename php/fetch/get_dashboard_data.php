@@ -1,6 +1,9 @@
 <?php
 include "../config/config.php";
 require_once __DIR__ . "/../helpers/operations_status.php";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 header("Content-Type: application/json");
 
@@ -31,6 +34,15 @@ function dashboard_query_all(mysqli $conn, string $sql): array
     return $rows;
 }
 
+$currentUserType = ucfirst(strtolower((string) ($_SESSION["user_type"] ?? "")));
+$currentUserIdNumber = trim((string) ($_SESSION["user_idNumber"] ?? ""));
+$operationsWhere = "";
+
+if ($currentUserType === "User" && $currentUserIdNumber !== "") {
+    $escapedUserIdNumber = mysqli_real_escape_string($conn, $currentUserIdNumber);
+    $operationsWhere = " WHERE created_by = '" . $escapedUserIdNumber . "'";
+}
+
 $stats = dashboard_query_assoc(
     $conn,
     "
@@ -42,6 +54,7 @@ $stats = dashboard_query_assoc(
         SUM(CASE WHEN DATE(created_date) = CURDATE() AND entry_type = 'DPC_KDs & OPM ENTRY' THEN 1 ELSE 0 END) AS today_dpc,
         SUM(CASE WHEN DATE(created_date) = CURDATE() AND entry_type = 'CARGO TRUCK ENTRY' THEN 1 ELSE 0 END) AS today_cargo
     FROM operations
+    {$operationsWhere}
 ",
 );
 
@@ -59,26 +72,26 @@ $chartRows = dashboard_query_all(
     $conn,
     "
     SELECT
-        DATE(created_date) AS entry_date,
-        COUNT(*) AS total_entries
+        DATE(created_date) AS created_day,
+        COUNT(*) AS total_operations
     FROM operations
-    WHERE DATE(created_date) >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+    " . ($operationsWhere === ""
+        ? "WHERE created_date IS NOT NULL"
+        : $operationsWhere . " AND created_date IS NOT NULL") . "
     GROUP BY DATE(created_date)
-    ORDER BY entry_date ASC
+    ORDER BY created_day ASC
 ",
 );
 
-$chartMap = [];
-foreach ($chartRows as $row) {
-    $chartMap[$row["entry_date"]] = (int) $row["total_entries"];
-}
-
 $chartLabels = [];
 $chartValues = [];
-for ($i = 6; $i >= 0; $i--) {
-    $date = date("Y-m-d", strtotime("-{$i} days"));
-    $chartLabels[] = date("M d", strtotime($date));
-    $chartValues[] = $chartMap[$date] ?? 0;
+foreach ($chartRows as $row) {
+    if (empty($row["created_day"])) {
+        continue;
+    }
+
+    $chartLabels[] = date("M d, Y", strtotime($row["created_day"]));
+    $chartValues[] = (int) $row["total_operations"];
 }
 
 $activityRows = dashboard_query_all(
@@ -93,6 +106,7 @@ $activityRows = dashboard_query_all(
         created_date,
         modified_date
     FROM operations
+    {$operationsWhere}
     ORDER BY GREATEST(
         COALESCE(modified_date, '1970-01-01 00:00:00'),
         COALESCE(created_date, '1970-01-01 00:00:00')
@@ -201,6 +215,7 @@ $latestRows = dashboard_query_all(
         genset_end_date,
         genset_end_time
     FROM operations
+    {$operationsWhere}
     ORDER BY entry_id DESC
     LIMIT 8
 ",
@@ -311,7 +326,9 @@ $todayRows = dashboard_query_all(
         genset_end_time,
         waybill_date
     FROM operations
-    WHERE DATE(created_date) = CURDATE()
+    " . ($operationsWhere === ""
+        ? "WHERE DATE(created_date) = CURDATE()"
+        : $operationsWhere . " AND DATE(created_date) = CURDATE()") . "
 ",
 );
 

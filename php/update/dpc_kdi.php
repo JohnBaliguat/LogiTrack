@@ -94,8 +94,8 @@ $remarks = validate($_POST["remarks"] ?? "");
 $dpc_date = validate($_POST["dpc_date"] ?? "");
 $piece_rate = operations_lookup_piece_rate($conn, $segment, $activity);
 $billing_sku = build_dpc_billing_sku($ph);
-$modified_by = isset($_SESSION["user_name"])
-    ? validate($_SESSION["user_name"])
+$modified_by = isset($_SESSION["user_idNumber"])
+    ? validate($_SESSION["user_idNumber"])
     : "system";
 $modified_date = date("Y-m-d H:i:s");
 

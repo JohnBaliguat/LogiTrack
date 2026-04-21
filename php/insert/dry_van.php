@@ -70,7 +70,7 @@ if (
     $delivered_remarks = validate($_POST["delivered_remarks"] ?? "");
     $driver_return_idNumber = validate($_POST["driver_return_idNumber"] ?? "");
 
-    $created_by = isset($_SESSION["user_name"]) ? validate($_SESSION["user_name"]) : "system";
+    $created_by = isset($_SESSION["user_idNumber"]) ? validate($_SESSION["user_idNumber"]) : "system";
 
     $billing_sku = build_dry_van_billing_sku($customer_ph, $pullout_location, $return_location);
 

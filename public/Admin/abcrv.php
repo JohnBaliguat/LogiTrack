@@ -112,11 +112,11 @@ $result = $stmt->get_result();
                                         <label for="ph_arrival_time" class="form-label">PH Arrival Time</label>
                                         <input type="text" class="form-control" id="ph_arrival_time" name="ph_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" hidden>
                                         <label for="delivery_location_arrival_date" class="form-label">DELIVERY LOCATION - ARRIVAL DATE</label>
                                         <input type="text" class="form-control" id="delivery_location_arrival_date" name="delivery_location_arrival_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" hidden>
                                         <label for="delivery_location_arrival_time" class="form-label">DELIVERY LOCATION - ARRIVAL TIME</label>
                                         <input type="text" class="form-control" id="delivery_location_arrival_time" name="delivery_location_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
                                     </div>
@@ -309,7 +309,8 @@ $result = $stmt->get_result();
                                         <label for="hr_meter_end" class="form-label">HR METER END</label>
                                         <input type="text" class="form-control" id="hr_meter_end" name="hr_meter_end">
                                     </div>
-                                    <div class="col-md-12">
+                                    <h5>GENSET HR READING</h5>
+                                    <div class="col-md-12" hidden>
                                         <label for="genset_hr_reading" class="form-label">GENSET HR READING</label>
                                         <input type="text" class="form-control" id="genset_hr_reading" name="genset_hr_reading">
                                     </div>

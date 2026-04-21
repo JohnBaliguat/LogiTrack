@@ -101,17 +101,17 @@ $result = $stmt->get_result();
                             <form id="dataEntryForm">
                                 <input type="hidden" id="data_id" name="data_id">
                                 <div class="row g-3">
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" hidden>
                                         <div class="mb-3 position-relative">
                                             <label for="segment" class="form-label">Segment</label>
-                                            <input type="text" class="form-control" id="segment" name="segment" required>
+                                            <input type="text" class="form-control" id="segment" name="segment">
                                             <ul id="segmentList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" hidden>
                                         <div class="mb-3 position-relative">
                                             <label for="activity" class="form-label">Activity</label>
-                                            <input type="text" class="form-control" id="activity" name="activity" required>
+                                            <input type="text" class="form-control" id="activity" name="activity">
                                             <ul id="activityList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                         </div>
                                     </div>
@@ -148,7 +148,7 @@ $result = $stmt->get_result();
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
                                             <label for="gs" class="form-label">GS (Genset)</label>
-                                            <input type="text" class="form-control" id="gs" name="gs" required autocomplete="off" placeholder="Search genset (GS)…">
+                                            <input type="text" class="form-control" id="gs" name="gs" autocomplete="off" placeholder="Search genset (GS)…">
                                             <ul id="gensetList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1030; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                         </div>
                                     </div>

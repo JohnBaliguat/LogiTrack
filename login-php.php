@@ -23,7 +23,7 @@ if (isset($_POST["login-btn"])) {
     } else {
         // Check user table
         $sql =
-            "SELECT `user_id`, `user_name`, `user_fname`, `user_lname`, `user_mname`, `user_email`, `user_pass`, `user_type`, `user_image`, `user_accountStat`, `user_code` FROM `user` WHERE user_name = ?";
+            "SELECT user_id, user_idNumber, user_name, user_fname, user_lname, user_mname, user_email, user_pass, user_type, user_image, user_accountStat, user_code FROM user WHERE user_name = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $uname);
         $stmt->execute();
@@ -42,6 +42,7 @@ if (isset($_POST["login-btn"])) {
 
             if (password_verify($pass, $hashedPassword)) {
                 $_SESSION["user_id"] = $row["user_id"];
+                $_SESSION["user_idNumber"] = $row["user_idNumber"];
                 $_SESSION["user_type"] = $row["user_type"];
                 $_SESSION["user_name"] = $row["user_name"];
                 $_SESSION["user_email"] = $row["user_email"];

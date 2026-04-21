@@ -80,6 +80,11 @@ $type = validate($_POST["type"] ?? "");
 $delivered_remarks = validate($_POST["delivered_remarks"] ?? "");
 $driver_return_idNumber = validate($_POST["driver_return_idNumber"] ?? "");
 
+$modified_by = isset($_SESSION["user_idNumber"])
+    ? validate($_SESSION["user_idNumber"])
+    : "system";
+$modified_date = date("Y-m-d H:i:s");
+
 $billing_sku = build_dry_van_billing_sku($customer_ph, $pullout_location, $return_location);
 
 if ($status === "") {
@@ -120,7 +125,9 @@ if ($status === "") {
         driver_return = ?,
         truck2 = ?,
         driver_return_idNumber = ?,
-        billing_sku = ?
+        billing_sku = ?,
+        modified_by = ?,
+        modified_date = ?
         WHERE entry_id = ? AND entry_type = 'DRY VAN ENTRY'";
 
     $stmt = $conn->prepare($sql);
@@ -160,6 +167,8 @@ if ($status === "") {
             $truck_return,
             $driver_return_idNumber,
             $billing_sku,
+            $modified_by,
+            $modified_date,
             $data_id
         );
 

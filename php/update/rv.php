@@ -4,6 +4,9 @@ require_once __DIR__ . "/../helpers/waybill_duplicate.php";
 require_once __DIR__ . "/../helpers/master_data_validate.php";
 require_once __DIR__ . "/../helpers/trip_rate_lookup.php";
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 function validate($data)
 {
     return htmlspecialchars(trim($data));
@@ -202,6 +205,10 @@ if (
     $genset_hr_meter = validate($_POST["genset_hr_meter"] ?? "");
     $genset_hr_reading = validate($_POST["genset_hr_reading"] ?? "");
     $refueled = validate($_POST["refueled"] ?? "");
+
+    $modified_by = isset($_SESSION["user_idNumber"])
+        ? validate($_SESSION["user_idNumber"])
+        : "system";
     
     // =========================
     // CONVERT DATES AND TIMES
@@ -279,14 +286,14 @@ if (
 
     if ($response["message"] === "") {
         $sql =
-            "UPDATE operations SET entry_type = ?, segment_empty = ?, activity_empty = ?, segment = ?, activity = ?, remarks = ?, pullout_location_arrival_date = ?, pullout_location_arrival_time = ?, pullout_location_departure_date = ?, pullout_location_departure_time = ?, ph_arrival_date = ?, ph_arrival_time = ?, van_alpha = ?, van_number = ?, van_name = ?, ph = ?, shipper = ?, ecs = ?, tr = ?, gs = ?, waybill = ?, waybill_empty = ?, prime_mover = ?, driver = ?, empty_pullout_location = ?, loaded_van_loading_start_date = ?, loaded_van_loading_start_time = ?, loaded_van_loading_finish_date = ?, loaded_van_loading_finish_time = ?, loaded_van_delivery_departure_date = ?, loaded_van_delivery_departure_time = ?, loaded_van_delivery_arrival_date = ?, loaded_van_delivery_arrival_time = ?, genset_shutoff_date = ?, genset_shutoff_time = ?, end_uploading_date = ?, end_uploading_time = ?, dr_no = ?, load_description = ?, delivered_by_prime_mover = ?, delivered_by_driver = ?, delivered_to = ?, delivered_remarks = ?, genset_hr_meter_start = ?, genset_hr_meter_end = ?, reference_documents = ?, genset_hr_meter = ?, genset_hr_reading = ?, refueled = ?, genset_start_date = ?, genset_start_time = ?, genset_end_date = ?, genset_end_time = ?, piece_rate_empty = ?, piece_rate_loaded = ?, piece_rate = ?, billing_sku = ?, driver_idNumber = ?, delivered_by_driverIdNumber = ?, delivery_location_arrival_date = ?, delivery_location_arrival_time = ? WHERE entry_id = ?";
+            "UPDATE operations SET entry_type = ?, segment_empty = ?, activity_empty = ?, segment = ?, activity = ?, remarks = ?, pullout_location_arrival_date = ?, pullout_location_arrival_time = ?, pullout_location_departure_date = ?, pullout_location_departure_time = ?, ph_arrival_date = ?, ph_arrival_time = ?, van_alpha = ?, van_number = ?, van_name = ?, ph = ?, shipper = ?, ecs = ?, tr = ?, gs = ?, waybill = ?, waybill_empty = ?, prime_mover = ?, driver = ?, empty_pullout_location = ?, loaded_van_loading_start_date = ?, loaded_van_loading_start_time = ?, loaded_van_loading_finish_date = ?, loaded_van_loading_finish_time = ?, loaded_van_delivery_departure_date = ?, loaded_van_delivery_departure_time = ?, loaded_van_delivery_arrival_date = ?, loaded_van_delivery_arrival_time = ?, genset_shutoff_date = ?, genset_shutoff_time = ?, end_uploading_date = ?, end_uploading_time = ?, dr_no = ?, load_description = ?, delivered_by_prime_mover = ?, delivered_by_driver = ?, delivered_to = ?, delivered_remarks = ?, genset_hr_meter_start = ?, genset_hr_meter_end = ?, reference_documents = ?, genset_hr_meter = ?, genset_hr_reading = ?, refueled = ?, genset_start_date = ?, genset_start_time = ?, genset_end_date = ?, genset_end_time = ?, piece_rate_empty = ?, piece_rate_loaded = ?, piece_rate = ?, billing_sku = ?, driver_idNumber = ?, delivered_by_driverIdNumber = ?, delivery_location_arrival_date = ?, delivery_location_arrival_time = ?, modified_by = ? WHERE entry_id = ?";
         $stmt = $conn->prepare($sql);
 
         if (!$stmt) {
             $response["message"] = "Prepare failed: " . $conn->error;
         } else {
             $stmt->bind_param(
-                str_repeat("s", 60) . "si",
+                str_repeat("s", 61) . "si",
                 $entry_type,
                 $segment_empty,
                 $activity_empty,
@@ -348,6 +355,7 @@ if (
                 $delivered_by_driverIdNumber,
                 $delivery_location_arrival_date,
                 $delivery_location_arrival_time,
+                $modified_by,
                 $data_id
             );
 
