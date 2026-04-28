@@ -234,11 +234,11 @@ $result = $stmt->get_result();
                                         <input type="text" class="form-control" id="delivery_arrival_time" name="delivery_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="end_unloading_start_date" class="form-label">END OF UNLOADING START DATE</label>
+                                        <label for="end_unloading_start_date" class="form-label">END OF UNLOADING DATE</label>
                                         <input type="text" class="form-control" id="end_unloading_start_date" name="end_unloading_start_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="end_unloading_start_time" class="form-label">END OF UNLOADING START TIME</label>
+                                        <label for="end_unloading_start_time" class="form-label">END OF UNLOADING TIME</label>
                                         <input type="text" class="form-control" id="end_unloading_start_time" name="end_unloading_start_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
                                     </div>
                                     <div class="col-md-6">
@@ -1006,6 +1006,23 @@ $result = $stmt->get_result();
             return displayTime;
         }
 
+        // Validate and parse DB-formatted date/time strings
+        function isValidDBDate(d) {
+            return /^\d{4}-\d{2}-\d{2}$/.test(d);
+        }
+
+        function isValidDBTime(t) {
+            return /^\d{2}:\d{2}$/.test(t);
+        }
+
+        function parseDBDateTime(d, t) {
+            if (!d || !isValidDBDate(d)) return null;
+            if (!t || !isValidDBTime(t)) t = '00:00';
+            const parts = d.split('-');
+            const timeParts = t.split(':');
+            return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), parseInt(timeParts[0], 10), parseInt(timeParts[1], 10), 0);
+        }
+
         function getValues() {
             const values = {
                 id: dataIdInput.value || null,
@@ -1465,6 +1482,34 @@ $result = $stmt->get_result();
                 Swal.fire('Missing field', 'Driver is required.', 'warning');
                 return;
             }
+
+            // Chronological order validations
+            function validateSequence(pairs, labelSequence) {
+                const dt = pairs.map(p => parseDBDateTime(values[p[0]], values[p[1]]));
+                for (let i = 0; i < dt.length - 1; i++) {
+                    if (dt[i] && dt[i+1] && dt[i].getTime() > dt[i+1].getTime()) {
+                        const lblPrev = labelSequence[i] || 'previous';
+                        const lblNext = labelSequence[i+1] || 'next';
+                        Swal.fire('Invalid sequence', `${lblNext} must be the same or after ${lblPrev}.`, 'warning');
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            if (!validateSequence([
+                ['pullout_location_arrival_date', 'pullout_location_arrival_time'],
+                ['pullout_location_departure_date', 'pullout_location_departure_time'],
+                ['ph_arrival_date', 'ph_arrival_time']
+            ], ['Pullout Location - Arrival','Pullout Location - Departure','PH Arrival'])) return;
+
+            if (!validateSequence([
+                ['loaded_van_loading_start_date', 'loaded_van_loading_start_time'],
+                ['loaded_van_loading_finish_date', 'loaded_van_loading_finish_time'],
+                ['loaded_van_delivery_departure_date', 'loaded_van_delivery_departure_time'],
+                ['loaded_van_delivery_arrival_date', 'loaded_van_delivery_arrival_time'],
+                ['end_uploading_date', 'end_uploading_time']
+            ], ['Loading Schedule Start','Loading Schedule Finish','Delivery Departure','Delivery Arrival','End of Unloading Start'])) return;
 
             const action = values.id ? 'update-rv' : 'add-rv';
             const endpoint = values.id ? 'php/update/rv.php' : 'php/insert/rv.php';

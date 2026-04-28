@@ -75,6 +75,61 @@ body {
     width: 100%;
 }
 
+.login-divider {
+    position: relative;
+    text-align: center;
+    margin: 1.25rem 0;
+}
+
+.login-divider::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #dee2e6;
+}
+
+.login-divider span {
+    position: relative;
+    display: inline-block;
+    padding: 0 12px;
+    background: #fff;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.btn-microsoft {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #fff;
+    color: #1f1f1f;
+    border: 1px solid #ced4da;
+    font-weight: 600;
+}
+
+.btn-microsoft:hover,
+.btn-microsoft:focus {
+    background: #f8f9fa;
+    color: #1f1f1f;
+    border-color: #adb5bd;
+}
+
+.microsoft-mark {
+    display: inline-grid;
+    grid-template-columns: repeat(2, 10px);
+    grid-template-rows: repeat(2, 10px);
+    gap: 2px;
+}
+
+.microsoft-mark span:nth-child(1) { background: #f25022; }
+.microsoft-mark span:nth-child(2) { background: #7fba00; }
+.microsoft-mark span:nth-child(3) { background: #00a4ef; }
+.microsoft-mark span:nth-child(4) { background: #ffb900; }
+
 .logo-circle {
     width: 80px;
     height: 80px;
@@ -287,6 +342,25 @@ body {
 
 .activity-list {
     padding: 10px 0;
+}
+
+.recent-activity-body {
+    max-height: 620px;
+    overflow-y: auto;
+}
+
+.recent-activity-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.recent-activity-body::-webkit-scrollbar-thumb {
+    background: rgba(113, 128, 150, 0.45);
+    border-radius: 999px;
+}
+
+.recent-activity-body::-webkit-scrollbar-track {
+    background: rgba(226, 232, 240, 0.45);
+    border-radius: 999px;
 }
 
 .activity-item {

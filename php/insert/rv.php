@@ -71,11 +71,55 @@ function build_rv_route($location)
     return in_array($normalized, $pnbLocations, true) ? "PNB" : "DVO";
 }
 
-function build_rv_billing_sku($shipper, $ph, $route1, $route2)
+function normalize_rv_ph_value($ph)
 {
-    $ph_number = (int) str_replace('PH', '', $ph);
+    $normalizedPh = trim((string) $ph);
 
-    return trim($shipper) . "-" . $ph_number . "-" . $route1 . "-" . $route2;
+    if (preg_match('/^[A-Z]+0*(\d+)$/i', $normalizedPh, $matches)) {
+        $normalizedPh = ltrim($matches[1], '0');
+        return $normalizedPh === "" ? "0" : $normalizedPh;
+    }
+
+    return $normalizedPh;
+}
+
+function lookup_rv_sku(mysqli $conn, $shipper, $ph)
+{
+    $shipper = trim((string) $shipper);
+    $ph = normalize_rv_ph_value($ph);
+
+    if ($shipper === "" || $ph === "") {
+        return null;
+    }
+
+    $sql = "SELECT sku_name, sku_rountripDistance
+            FROM sku
+            WHERE TRIM(sku_shipper_segment) = ?
+              AND TRIM(sku_farm) = ?
+            LIMIT 1";
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        return null;
+    }
+
+    $stmt->bind_param("ss", $shipper, $ph);
+    if (!$stmt->execute()) {
+        $stmt->close();
+        return null;
+    }
+
+    $result = $stmt->get_result();
+    $row = $result ? $result->fetch_assoc() : null;
+    $stmt->close();
+
+    if (!$row) {
+        return null;
+    }
+
+    return [
+        "billing_sku" => trim((string) ($row["sku_name"] ?? "")),
+        "kms" => trim((string) ($row["sku_rountripDistance"] ?? "")),
+    ];
 }
 
 if (
@@ -225,7 +269,9 @@ if (
     $piece_rate = (float)$piece_rate_empty + (float)$piece_rate_loaded;
     $route1 = build_rv_route($empty_pullout_location);
     $route2 = build_rv_route($delivered_to);
-    $billing_sku = build_rv_billing_sku($shipper, $ph, $route1, $route2);
+    $skuData = lookup_rv_sku($conn, $shipper, $ph);
+    $billing_sku = $skuData["billing_sku"] ?? "";
+    $kms = $skuData["kms"] ?? "";
 
     $created_by = isset($_SESSION["user_idNumber"])
         ? validate($_SESSION["user_idNumber"])
@@ -243,6 +289,8 @@ if (
         $response["message"] = "Waybill is required.";
     } elseif (empty($ph)) {
         $response["message"] = "PH (Packing House / Location) is required.";
+    } elseif (empty($shipper)) {
+        $response["message"] = "Shipper is required.";
     } elseif (empty($tr)) {
         $response["message"] = "Trailer (TR) is required.";
     } elseif (empty($gs)) {
@@ -271,6 +319,9 @@ if (
         )) !== null
     ) {
         $response["message"] = $e;
+    } elseif ($skuData === null || $billing_sku === "") {
+        $response["message"] =
+            "No SKU found for the selected shipper and PH (Packing House / Location).";
     } else {
         // =========================
         // INSERT QUERY
@@ -335,6 +386,7 @@ if (
             piece_rate_empty,
             piece_rate_loaded,
             piece_rate,
+            kms,
             billing_sku,
             created_by,
             driver_idNumber,
@@ -346,7 +398,7 @@ if (
             ?,?,?,?,?,?,?,?,?,?,
             ?,?,?,?,?,?,?,?,?,?,
             ?,?,?,?,?,?,?,?,?,?,
-            ?,?,?,?,?,?,?,?,?,?,?,?
+            ?,?,?,?,?,?,?,?,?,?,?,?,?
         )";
 
         $stmt = $conn->prepare($sql);
@@ -354,9 +406,9 @@ if (
         if (!$stmt) {
             $response["message"] = "Prepare failed: " . $conn->error;
         } else {
-            // 62 fields
+            // 63 fields
             $stmt->bind_param(
-                str_repeat("s", 62),
+                str_repeat("s", 63),
 
                 $entry_type,
                 $segment_empty,
@@ -416,6 +468,7 @@ if (
                 $piece_rate_empty,
                 $piece_rate_loaded,
                 $piece_rate,
+                $kms,
                 $billing_sku,
                 $created_by,
                 $driver_idNumber,
@@ -445,6 +498,7 @@ if (
                     "piece_rate_empty" => $piece_rate_empty,
                     "piece_rate_loaded" => $piece_rate_loaded,
                     "piece_rate" => $piece_rate,
+                    "kms" => $kms,
                     "billing_sku" => $billing_sku,
                 ];
             } else {

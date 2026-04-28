@@ -91,17 +91,17 @@
                                 <small class="text-muted">All available operation dates</small>
                             </div>
                             <div class="card-body">
-                                <canvas id="activityChart" height="100"></canvas>
+                                <canvas id="activityChart"></canvas>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-xl-4">
-                        <div class="card h-100">
+                        <div class="card">
                             <div class="card-header bg-white">
                                 <h5 class="mb-0">Recent Activity</h5>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body recent-activity-body">
                                 <div class="activity-list" id="recentActivityList">
                                     <div class="text-muted">Loading activity...</div>
                                 </div>
@@ -111,7 +111,7 @@
                 </div>
 
                 <div class="row g-4 mb-4">
-                    <div class="col-xl-3 col-md-6">
+                    <div class="col-xl col-lg-4 col-md-6">
                         <div class="stat-card-simple">
                             <div class="stat-icon-simple bg-primary">
                                 <i class="bi bi-snow"></i>
@@ -122,7 +122,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-md-6">
+                    <div class="col-xl col-lg-4 col-md-6">
                         <div class="stat-card-simple">
                             <div class="stat-icon-simple bg-success">
                                 <i class="bi bi-box-seam"></i>
@@ -133,7 +133,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-md-6">
+                    <div class="col-xl col-lg-4 col-md-6">
                         <div class="stat-card-simple">
                             <div class="stat-icon-simple bg-warning">
                                 <i class="bi bi-truck-flatbed"></i>
@@ -144,7 +144,18 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-md-6">
+                    <div class="col-xl col-lg-4 col-md-6">
+                        <div class="stat-card-simple">
+                            <div class="stat-icon-simple bg-info">
+                                <i class="bi bi-truck-front"></i>
+                            </div>
+                            <div>
+                                <h3 id="dryVanCount">0</h3>
+                                <p>Dry Van Today</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl col-lg-4 col-md-6">
                         <div class="stat-card-simple">
                             <div class="stat-icon-simple bg-danger">
                                 <i class="bi bi-truck"></i>
@@ -253,6 +264,7 @@
                 document.getElementById('rvCount').textContent = String(stats.by_type?.rv ?? 0);
                 document.getElementById('othersCount').textContent = String(stats.by_type?.others ?? 0);
                 document.getElementById('dpcCount').textContent = String(stats.by_type?.dpc_kdi ?? 0);
+                document.getElementById('dryVanCount').textContent = String(stats.by_type?.dry_van ?? 0);
                 document.getElementById('cargoCount').textContent = String(stats.by_type?.cargo_truck ?? 0);
             }
 

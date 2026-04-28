@@ -41,7 +41,7 @@ function getOthersEffectiveDate(array $row): string
 }
 
 $selectedEntryDate = getSelectedEntryDate();
-$stmt = $conn->prepare("SELECT entry_id, entry_type, segment, activity, waybill_date, remarks, pullout_location_arrival_date, pullout_location_arrival_time, pullout_location_departure_date, pullout_location_departure_time, ph_arrival_date, ph_arrival_time, van_alpha, van_number, van_name, ph, shipper, ecs, tr, gs, waybill, waybill_empty, prime_mover, driver, driver_idNumber, empty_pullout_location, loaded_van_loading_start_date, loaded_van_loading_start_time, loaded_van_loading_finish_date, loaded_van_loading_finish_time, loaded_van_delivery_departure_date, loaded_van_delivery_departure_time, loaded_van_delivery_arrival_date, loaded_van_delivery_arrival_time, genset_shutoff_date, genset_shutoff_time, end_uploading_date, end_uploading_time, dr_no, load_description, delivered_by_prime_mover, delivered_by_driver, delivered_to, delivered_remarks, genset_hr_meter_start, genset_hr_meter_end, genset_start_date, genset_start_time, genset_end_date, genset_end_time, others_date, truck, operations_ph, load_quantity_weight, unit_of_measure, deliver_from, production_date, finished_loading_date, finished_loading_time, ph_departure_date, ph_departure_time, wharf_arrival_date, wharf_arrival_time, wharf_departure_date, wharf_departure_time, tls_number, 13_kgs, sp_3kgs, total_load, bbhm_type, dpc_date, evita_farmind, departure, arrival, 13_body, 13_cover, 13_pads, 18_body, 18_cover, 18_pads, 13_total, 18_total, fgtr_no, cargo_date, customer_ph, outside, compound, total_trips, operations, piece_rate, created_by, created_date, modified_by, modified_date FROM operations WHERE entry_type = 'OTHERS ENTRY' AND DATE(created_date) = ? ORDER BY entry_id DESC");
+$stmt = $conn->prepare("SELECT entry_id, entry_type, segment, activity, waybill_date, remarks, pullout_location_arrival_date, pullout_location_arrival_time, pullout_location_departure_date, pullout_location_departure_time, ph_arrival_date, ph_arrival_time, van_alpha, van_number, van_name, ph, shipper, ecs, tr, gs, waybill, waybill_empty, prime_mover, driver, driver_idNumber, empty_pullout_location, loaded_van_loading_start_date, loaded_van_loading_start_time, loaded_van_loading_finish_date, loaded_van_loading_finish_time, loaded_van_delivery_departure_date, loaded_van_delivery_departure_time, loaded_van_delivery_arrival_date, loaded_van_delivery_arrival_time, genset_shutoff_date, genset_shutoff_time, end_uploading_date, end_uploading_time, dr_no, load_description, delivered_by_prime_mover, delivered_by_driver, delivered_to, delivered_remarks, genset_hr_meter_start, genset_hr_meter_end, genset_start_date, genset_start_time, genset_end_date, genset_end_time, others_date, truck, operations_ph, load_quantity_weight, unit_of_measure, deliver_from, production_date, finished_loading_date, finished_loading_time, ph_departure_date, ph_departure_time, wharf_arrival_date, wharf_arrival_time, wharf_departure_date, wharf_departure_time, tls_number, 13_kgs, sp_3kgs, total_load, bbhm_type, dpc_date, evita_farmind, departure, arrival, 13_body, 13_cover, 13_pads, 18_body, 18_cover, 18_pads, 13_total, 18_total, fgtr_no, cargo_date, customer_ph, outside, compound, total_trips, operations, piece_rate, kms, created_by, created_date, modified_by, modified_date FROM operations WHERE entry_type = 'OTHERS ENTRY' AND DATE(created_date) = ? ORDER BY entry_id DESC");
 $stmt->bind_param("s", $selectedEntryDate);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -81,7 +81,7 @@ $result = $stmt->get_result();
                             <a class="btn btn-outline-secondary" href="sumiRv">Sumi/Farmined RV</a>
                             <a class="btn btn-outline-secondary" href="tdcRv">TDC/Good Farmer RV</a>
                             <a class="btn btn-outline-secondary" href="others">Others</a>
-                            <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDI & OPM</a>
+                            <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDS & OPM</a>
                             <a class="btn btn-outline-secondary" href="cargoTruck">Cargo Truck</a>
                             <a class="btn btn-outline-secondary" href="dryVan">Dry Van</a>
                         </div>
@@ -116,23 +116,23 @@ $result = $stmt->get_result();
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="date" class="form-label">DATE</label>
+                                        <label for="date" class="form-label">DATE <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="date" name="date" required data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="waybill" class="form-label">WAYBILL</label>
+                                        <label for="waybill" class="form-label">WAYBILL <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="waybill" name="waybill" required>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="truck" class="form-label">TRUCK</label>
-                                            <input type="text" class="form-control" id="truck" name="truck" autocomplete="off">
+                                            <label for="truck" class="form-label">TRUCK <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="truck" name="truck" required autocomplete="off">
                                             <ul id="truckList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1020; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="driver" class="form-label">DRIVER</label>
+                                            <label for="driver" class="form-label">DRIVER <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" id="driver" name="driver" required autocomplete="off">
                                             <ul id="driverList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                             <input type="hidden" id="driver_idNumber" name="driver_idNumber">
@@ -140,7 +140,7 @@ $result = $stmt->get_result();
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="tr" class="form-label">TR (Trailer)</label>
+                                            <label for="tr" class="form-label">TR (Trailer) <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" id="tr" name="tr" required autocomplete="off" placeholder="Search trailer…">
                                             <ul id="trList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1040; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                         </div>
@@ -154,34 +154,38 @@ $result = $stmt->get_result();
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="operations_ph" class="form-label">OPERATIONS / PH (Location)</label>
+                                            <label for="operations_ph" class="form-label">OPERATIONS / PH (Location) <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" id="operations_ph" name="operations_ph" required autocomplete="off" placeholder="Search packing house or location…">
                                             <ul id="operationsPhList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1050; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="customer_ph" class="form-label">CUSTOMER</label>
-                                        <input type="text" class="form-control" id="customer_ph" name="customer_ph">
+                                        <label for="customer_ph" class="form-label">CUSTOMER <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="customer_ph" name="customer_ph" required>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="load_quantity_weight" class="form-label">Load/Quantity/Weight</label>
-                                        <input type="text" class="form-control" id="load_quantity_weight" name="load_quantity_weight">
+                                    <div class="col-md-4">
+                                        <label for="load_quantity_weight" class="form-label">Load/Quantity/Weight <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="load_quantity_weight" name="load_quantity_weight" required>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="unit_of_measure" class="form-label">UNIT OF MEASURE</label>
-                                        <input type="text" class="form-control" id="unit_of_measure" name="unit_of_measure">
+                                    <div class="col-md-4">
+                                        <label for="unit_of_measure" class="form-label">UNIT OF MEASURE <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="unit_of_measure" name="unit_of_measure" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="kms" class="form-label">KMS</label>
+                                        <input type="text" class="form-control" id="kms" name="kms">
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="deliver_from" class="form-label">DELIVER FROM</label>
-                                            <input type="text" class="form-control" id="deliver_from" name="deliver_from" autocomplete="off" placeholder="Search location">
+                                            <label for="deliver_from" class="form-label">DELIVER FROM <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="deliver_from" name="deliver_from" required autocomplete="off" placeholder="Search location">
                                             <ul id="deliverFromList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1050; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="deliver_to" class="form-label">DELIVER TO</label>
-                                            <input type="text" class="form-control" id="deliver_to" name="deliver_to" autocomplete="off" placeholder="Search location">
+                                            <label for="deliver_to" class="form-label">DELIVER TO <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="deliver_to" name="deliver_to" required autocomplete="off" placeholder="Search location">
                                             <ul id="deliverToList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1050; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                         </div>
                                     </div>
@@ -257,6 +261,7 @@ $result = $stmt->get_result();
                                         data-customer_ph="<?php echo htmlspecialchars($row['customer_ph']); ?>"
                                         data-load_qty="<?php echo htmlspecialchars($row['load_quantity_weight']); ?>"
                                         data-unit_of_measure="<?php echo htmlspecialchars($row['unit_of_measure']); ?>"
+                                        data-kms="<?php echo htmlspecialchars($row['kms'] ?? ''); ?>"
                                         data-deliver_from="<?php echo htmlspecialchars($row['deliver_from']); ?>"
                                         data-deliver_to="<?php echo htmlspecialchars($row['delivered_to']); ?>"
                                         data-remarks="<?php echo htmlspecialchars($row['remarks']); ?>"
@@ -307,6 +312,7 @@ $result = $stmt->get_result();
             const customerPhInput = document.getElementById('customer_ph');
             const loadQtyInput = document.getElementById('load_quantity_weight');
             const unitOfMeasureInput = document.getElementById('unit_of_measure');
+            const kmsInput = document.getElementById('kms');
             const deliverFromInput = document.getElementById('deliver_from');
             const deliverToInput = document.getElementById('deliver_to');
             const remarksInput = document.getElementById('remarks');
@@ -745,6 +751,7 @@ $result = $stmt->get_result();
                 customerPhInput.value = record.customer_ph || '';
                 loadQtyInput.value = record.load_quantity_weight || '';
                 unitOfMeasureInput.value = record.unit_of_measure || '';
+                kmsInput.value = record.kms || '';
                 deliverFromInput.value = record.deliver_from || '';
                 deliverToInput.value = record.delivered_to || '';
                 remarksInput.value = record.remarks || '';
@@ -831,6 +838,7 @@ $result = $stmt->get_result();
                 row.dataset.customer_ph = rowData.customer_ph || '';
                 row.dataset.load_qty = rowData.load_quantity_weight || '';
                 row.dataset.unit_of_measure = rowData.unit_of_measure || '';
+                row.dataset.kms = rowData.kms || '';
                 row.dataset.deliver_from = rowData.deliver_from || '';
                 row.dataset.deliver_to = rowData.delivered_to || '';
                 row.dataset.remarks = rowData.remarks || '';
@@ -966,6 +974,7 @@ $result = $stmt->get_result();
                 formData.append('customer_ph', customerPhInput.value.trim());
                 formData.append('load_quantity_weight', loadQtyInput.value.trim());
                 formData.append('unit_of_measure', unitOfMeasureInput.value.trim());
+                formData.append('kms', kmsInput.value.trim());
                 formData.append('deliver_from', deliverFromInput.value.trim());
                 formData.append('deliver_to', deliverToInput.value.trim());
                 formData.append('remarks', remarksInput.value.trim());

@@ -45,6 +45,11 @@
                         <p class="text-muted">Enter your credentials to access your account</p>
                     </div>
 
+                    <?php
+                    require_once "php/helpers/microsoft_auth.php";
+                    $microsoftEnabled = microsoftAuthConfigured();
+                    ?>
+
                     <form action="login-php.php" method="POST">
                         <?php if (isset($_GET['error'])) { ?>
                             <div class="alert alert-danger mb-3 py-3" role="alert">
@@ -54,8 +59,8 @@
                         <div class="mb-4">
                             <label for="uname" class="form-label">Username</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                <input type="text" class="form-control" id="uname" name="uname" placeholder="Enter your username" required autocomplete="username">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" id="uname" name="uname" placeholder="Enter your username" required autocomplete="username" style="height: 50px;">
                             </div>
                         </div>
 
@@ -74,8 +79,29 @@
                             <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
                         </button>
 
+                        <div class="login-divider">
+                            <span>or</span>
+                        </div>
+
+                        <a
+                            href="microsoft-login"
+                            class="btn btn-microsoft w-100 py-3 mb-3 <?php echo $microsoftEnabled ? '' : 'disabled'; ?>"
+                            <?php echo $microsoftEnabled ? '' : 'aria-disabled="true" tabindex="-1"'; ?>
+                        >
+                            <span class="microsoft-mark" aria-hidden="true">
+                                <span></span><span></span><span></span><span></span>
+                            </span>
+                            <span>Sign in with Microsoft Work Account</span>
+                        </a>
+
+                        <?php if (!$microsoftEnabled) { ?>
+                            <p class="small text-muted text-center mb-3">
+                                Microsoft sign-in is unavailable until the Azure app credentials are configured.
+                            </p>
+                        <?php } ?>
+
                         <div class="text-center">
-                            <small class="text-muted">Don't have an account? <a href="#" class="text-decoration-none">Contact Administrator</a></small>
+                            <small class="text-muted">Don't have an account? <a href="https://viber.click/09460456924" class="text-decoration-none" target="_blank">Contact Administrator</a></small>
                         </div>
                     </form>
                 </div>

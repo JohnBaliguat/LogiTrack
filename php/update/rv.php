@@ -71,9 +71,55 @@ function build_rv_route($location)
     return in_array($normalized, $pnbLocations, true) ? "PNB" : "DVO";
 }
 
-function build_rv_billing_sku($shipper, $ph, $route1, $route2)
+function normalize_rv_ph_value($ph)
 {
-    return trim($shipper) . "-" . trim($ph) . "-" . $route1 . "-" . $route2;
+    $normalizedPh = trim((string) $ph);
+
+    if (preg_match('/^[A-Z]+0*(\d+)$/i', $normalizedPh, $matches)) {
+        $normalizedPh = ltrim($matches[1], '0');
+        return $normalizedPh === "" ? "0" : $normalizedPh;
+    }
+
+    return $normalizedPh;
+}
+
+function lookup_rv_sku(mysqli $conn, $shipper, $ph)
+{
+    $shipper = trim((string) $shipper);
+    $ph = normalize_rv_ph_value($ph);
+
+    if ($shipper === "" || $ph === "") {
+        return null;
+    }
+
+    $sql = "SELECT sku_name, sku_rountripDistance
+            FROM sku
+            WHERE TRIM(sku_shipper_segment) = ?
+              AND TRIM(sku_farm) = ?
+            LIMIT 1";
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        return null;
+    }
+
+    $stmt->bind_param("ss", $shipper, $ph);
+    if (!$stmt->execute()) {
+        $stmt->close();
+        return null;
+    }
+
+    $result = $stmt->get_result();
+    $row = $result ? $result->fetch_assoc() : null;
+    $stmt->close();
+
+    if (!$row) {
+        return null;
+    }
+
+    return [
+        "billing_sku" => trim((string) ($row["sku_name"] ?? "")),
+        "kms" => trim((string) ($row["sku_rountripDistance"] ?? "")),
+    ];
 }
 
 if (
@@ -244,7 +290,9 @@ if (
     $piece_rate = (float)$piece_rate_empty + (float)$piece_rate_loaded;
     $route1 = build_rv_route($empty_pullout_location);
     $route2 = build_rv_route($delivered_to);
-    $billing_sku = build_rv_billing_sku($shipper, $ph, $route1, $route2);
+    $skuData = lookup_rv_sku($conn, $shipper, $ph);
+    $billing_sku = $skuData["billing_sku"] ?? "";
+    $kms = $skuData["kms"] ?? "";
 
     if (empty($segment_empty) || empty($activity_empty)) {
         $response["message"] = "Empty segment and activity are required.";
@@ -254,6 +302,8 @@ if (
         $response["message"] = "Waybill is required.";
     } elseif (empty($ph)) {
         $response["message"] = "PH (Packing House / Location) is required.";
+    } elseif (empty($shipper)) {
+        $response["message"] = "Shipper is required.";
     } elseif (empty($tr)) {
         $response["message"] = "Trailer (TR) is required.";
     } elseif (empty($gs)) {
@@ -282,18 +332,21 @@ if (
         )) !== null
     ) {
         $response["message"] = $e;
+    } elseif ($skuData === null || $billing_sku === "") {
+        $response["message"] =
+            "No SKU found for the selected shipper and PH (Packing House / Location).";
     }
 
     if ($response["message"] === "") {
         $sql =
-            "UPDATE operations SET entry_type = ?, segment_empty = ?, activity_empty = ?, segment = ?, activity = ?, remarks = ?, pullout_location_arrival_date = ?, pullout_location_arrival_time = ?, pullout_location_departure_date = ?, pullout_location_departure_time = ?, ph_arrival_date = ?, ph_arrival_time = ?, van_alpha = ?, van_number = ?, van_name = ?, ph = ?, shipper = ?, ecs = ?, tr = ?, gs = ?, waybill = ?, waybill_empty = ?, prime_mover = ?, driver = ?, empty_pullout_location = ?, loaded_van_loading_start_date = ?, loaded_van_loading_start_time = ?, loaded_van_loading_finish_date = ?, loaded_van_loading_finish_time = ?, loaded_van_delivery_departure_date = ?, loaded_van_delivery_departure_time = ?, loaded_van_delivery_arrival_date = ?, loaded_van_delivery_arrival_time = ?, genset_shutoff_date = ?, genset_shutoff_time = ?, end_uploading_date = ?, end_uploading_time = ?, dr_no = ?, load_description = ?, delivered_by_prime_mover = ?, delivered_by_driver = ?, delivered_to = ?, delivered_remarks = ?, genset_hr_meter_start = ?, genset_hr_meter_end = ?, reference_documents = ?, genset_hr_meter = ?, genset_hr_reading = ?, refueled = ?, genset_start_date = ?, genset_start_time = ?, genset_end_date = ?, genset_end_time = ?, piece_rate_empty = ?, piece_rate_loaded = ?, piece_rate = ?, billing_sku = ?, driver_idNumber = ?, delivered_by_driverIdNumber = ?, delivery_location_arrival_date = ?, delivery_location_arrival_time = ?, modified_by = ? WHERE entry_id = ?";
+            "UPDATE operations SET entry_type = ?, segment_empty = ?, activity_empty = ?, segment = ?, activity = ?, remarks = ?, pullout_location_arrival_date = ?, pullout_location_arrival_time = ?, pullout_location_departure_date = ?, pullout_location_departure_time = ?, ph_arrival_date = ?, ph_arrival_time = ?, van_alpha = ?, van_number = ?, van_name = ?, ph = ?, shipper = ?, ecs = ?, tr = ?, gs = ?, waybill = ?, waybill_empty = ?, prime_mover = ?, driver = ?, empty_pullout_location = ?, loaded_van_loading_start_date = ?, loaded_van_loading_start_time = ?, loaded_van_loading_finish_date = ?, loaded_van_loading_finish_time = ?, loaded_van_delivery_departure_date = ?, loaded_van_delivery_departure_time = ?, loaded_van_delivery_arrival_date = ?, loaded_van_delivery_arrival_time = ?, genset_shutoff_date = ?, genset_shutoff_time = ?, end_uploading_date = ?, end_uploading_time = ?, dr_no = ?, load_description = ?, delivered_by_prime_mover = ?, delivered_by_driver = ?, delivered_to = ?, delivered_remarks = ?, genset_hr_meter_start = ?, genset_hr_meter_end = ?, reference_documents = ?, genset_hr_meter = ?, genset_hr_reading = ?, refueled = ?, genset_start_date = ?, genset_start_time = ?, genset_end_date = ?, genset_end_time = ?, piece_rate_empty = ?, piece_rate_loaded = ?, piece_rate = ?, kms = ?, billing_sku = ?, driver_idNumber = ?, delivered_by_driverIdNumber = ?, delivery_location_arrival_date = ?, delivery_location_arrival_time = ?, modified_by = ? WHERE entry_id = ?";
         $stmt = $conn->prepare($sql);
 
         if (!$stmt) {
             $response["message"] = "Prepare failed: " . $conn->error;
         } else {
             $stmt->bind_param(
-                str_repeat("s", 61) . "si",
+                str_repeat("s", 62) . "si",
                 $entry_type,
                 $segment_empty,
                 $activity_empty,
@@ -350,6 +403,7 @@ if (
                 $piece_rate_empty,
                 $piece_rate_loaded,
                 $piece_rate,
+                $kms,
                 $billing_sku,
                 $driver_idNumber,
                 $delivered_by_driverIdNumber,
@@ -379,6 +433,7 @@ if (
                     "piece_rate_empty" => $piece_rate_empty,
                     "piece_rate_loaded" => $piece_rate_loaded,
                     "piece_rate" => $piece_rate,
+                    "kms" => $kms,
                     "billing_sku" => $billing_sku,
                 ];
             } else {

@@ -49,7 +49,7 @@ $result = $stmt->get_result();
                             <a class="btn btn-outline-secondary" href="sumiRv">Sumi/Farmined RV</a>
                             <a class="btn btn-outline-secondary" href="tdcRv">TDC/Good Farmer RV</a>
                             <a class="btn btn-outline-secondary" href="others">Others</a>
-                            <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDI & OPM</a>
+                            <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDS & OPM</a>
                             <a class="btn btn-outline-secondary" href="cargoTruck">Cargo Truck</a>
                             <a class="btn btn-outline-secondary" href="dryVan">Dry Van</a>
                         </div>
@@ -85,32 +85,32 @@ $result = $stmt->get_result();
                                         </div>
                                     </div>
                                     <div class="col-md-12">
-                                        <label for="waybill_empty" class="form-label">WAYBILL</label>
-                                        <input type="text" class="form-control" id="waybill_empty" name="waybill_empty">
+                                        <label for="waybill_empty" class="form-label">WAYBILL <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="waybill_empty" name="waybill_empty" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="pullout_location_arrival_date" class="form-label">Pullout Location - Arrival Date</label>
-                                        <input type="text" class="form-control" id="pullout_location_arrival_date" name="pullout_location_arrival_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                        <label for="pullout_location_arrival_date" class="form-label">Pullout Location - Arrival Date <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="pullout_location_arrival_date" name="pullout_location_arrival_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="pullout_location_arrival_time" class="form-label">Pullout Location - Arrival Time</label>
-                                        <input type="text" class="form-control" id="pullout_location_arrival_time" name="pullout_location_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
+                                        <label for="pullout_location_arrival_time" class="form-label">Pullout Location - Arrival Time <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="pullout_location_arrival_time" name="pullout_location_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="pullout_location_departure_date" class="form-label">Pullout Location - Departure Date</label>
-                                        <input type="text" class="form-control" id="pullout_location_departure_date" name="pullout_location_departure_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                        <label for="pullout_location_departure_date" class="form-label">Pullout Location - Departure Date <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="pullout_location_departure_date" name="pullout_location_departure_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="pullout_location_departure_time" class="form-label">Pullout Location - Departure Time</label>
-                                        <input type="text" class="form-control" id="pullout_location_departure_time" name="pullout_location_departure_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
+                                        <label for="pullout_location_departure_time" class="form-label">Pullout Location - Departure Time <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="pullout_location_departure_time" name="pullout_location_departure_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="ph_arrival_date" class="form-label">PH Arrival Date</label>
-                                        <input type="text" class="form-control" id="ph_arrival_date" name="ph_arrival_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                        <label for="ph_arrival_date" class="form-label">PH Arrival Date <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="ph_arrival_date" name="ph_arrival_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="ph_arrival_time" class="form-label">PH Arrival Time</label>
-                                        <input type="text" class="form-control" id="ph_arrival_time" name="ph_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
+                                        <label for="ph_arrival_time" class="form-label">PH Arrival Time <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="ph_arrival_time" name="ph_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM" required>
                                     </div>
                                     <div class="col-md-6" hidden>
                                         <label for="delivery_location_arrival_date" class="form-label">DELIVERY LOCATION - ARRIVAL DATE</label>
@@ -121,60 +121,60 @@ $result = $stmt->get_result();
                                         <input type="text" class="form-control" id="delivery_location_arrival_time" name="delivery_location_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
                                     </div>
                                     <div class="col-md-12">
-                                        <label for="van_alpha" class="form-label">VAN - ALPHA</label>
-                                        <input type="text" class="form-control" id="van_alpha" name="van_alpha">
+                                        <label for="van_alpha" class="form-label">VAN - ALPHA <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="van_alpha" name="van_alpha" required>
                                     </div>
                                     <div class="col-md-12">
-                                        <label for="van_number" class="form-label">VAN - NUMBER</label>
-                                        <input type="text" class="form-control" id="van_number" name="van_number">
+                                        <label for="van_number" class="form-label">VAN - NUMBER <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="van_number" name="van_number" required>
                                     </div>
                                     
                                     <div class="col-md-12">
-                                        <label for="van_name" class="form-label">VAN NAME</label>
-                                        <input type="text" class="form-control" id="van_name" name="van_name">
+                                        <label for="van_name" class="form-label">VAN NAME <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="van_name" name="van_name" required>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="ph" class="form-label">PH (Packing House / Location)</label>
+                                            <label for="ph" class="form-label">PH (Packing House / Location) <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" id="ph" name="ph" required autocomplete="off" placeholder="Search location or PH…">
                                             <ul id="phList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1050; display: none; max-height: 240px; overflow-y: auto;"></ul>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="shipper" class="form-label">SHIPPER</label>
-                                            <input type="text" class="form-control" id="shipper" name="shipper" autocomplete="off" placeholder="Search shipper…">
+                                            <label for="shipper" class="form-label">SHIPPER <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="shipper" name="shipper" required autocomplete="off" placeholder="Search shipper…">
                                             <ul id="shipperList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1040; display: none; max-height: 240px; overflow-y: auto;"></ul>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="ecs" class="form-label">ECS</label>
-                                        <input type="text" class="form-control" id="ecs" name="ecs">
+                                        <label for="ecs" class="form-label">ECS <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="ecs" name="ecs" required>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="tr" class="form-label">TR</label>
+                                            <label for="tr" class="form-label">TR <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" id="tr" name="tr" required autocomplete="off" placeholder="Search trailer…">
                                             <ul id="trailerList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1040; display: none; max-height: 240px; overflow-y: auto;"></ul>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="gs" class="form-label">GS</label>
+                                            <label for="gs" class="form-label">GS <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" id="gs" name="gs" required autocomplete="off" placeholder="Search genset (GS)…">
                                             <ul id="gensetList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1030; display: none; max-height: 240px; overflow-y: auto;"></ul>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="prime_mover" class="form-label">PRIME MOVER</label>
+                                            <label for="prime_mover" class="form-label">PRIME MOVER <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" id="prime_mover" name="prime_mover" required autocomplete="off">
                                             <ul id="truckList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1020; display: none; max-height: 240px; overflow-y: auto;"></ul>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="driver" class="form-label">DRIVER</label>
+                                            <label for="driver" class="form-label">DRIVER <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" id="driver" name="driver" required autocomplete="off">
                                             <ul id="driverList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1010; display: none; max-height: 240px; overflow-y: auto;"></ul>
                                             <input type="hidden" id="driver_idNumber" name="driver_idNumber">
@@ -182,8 +182,8 @@ $result = $stmt->get_result();
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="empty_pullout_location" class="form-label">EMPTY PULL-OUT LOCATION</label>
-                                            <input type="text" class="form-control" id="empty_pullout_location" name="empty_pullout_location" autocomplete="off">
+                                            <label for="empty_pullout_location" class="form-label">EMPTY PULL-OUT LOCATION <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="empty_pullout_location" name="empty_pullout_location" required autocomplete="off">
                                             <ul id="emptyPulloutLocationList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1010; display: none; max-height: 240px; overflow-y: auto;"></ul>
                                         </div>
                                     </div>
@@ -203,48 +203,48 @@ $result = $stmt->get_result();
                                         </div>
                                     </div>
                                     <div class="col-md-12">
-                                        <label for="waybill" class="form-label">WAYBILL</label>
+                                        <label for="waybill" class="form-label">WAYBILL <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="waybill" name="waybill" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="loading_start_date" class="form-label">LOADING SCHEDULE START DATE</label>
-                                        <input type="text" class="form-control" id="loading_start_date" name="loading_start_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                        <label for="loading_start_date" class="form-label">LOADING SCHEDULE START DATE <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="loading_start_date" name="loading_start_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="loading_start_time" class="form-label">LOADING SCHEDULE START TIME</label>
-                                        <input type="text" class="form-control" id="loading_start_time" name="loading_start_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
+                                        <label for="loading_start_time" class="form-label">LOADING SCHEDULE START TIME <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="loading_start_time" name="loading_start_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="loading_finish_date" class="form-label">LOADING SCHEDULE FINISH DATE</label>
-                                        <input type="text" class="form-control" id="loading_finish_date" name="loading_finish_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                        <label for="loading_finish_date" class="form-label">LOADING SCHEDULE FINISH DATE <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="loading_finish_date" name="loading_finish_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="loading_finish_time" class="form-label">LOADING SCHEDULE FINISH TIME</label>
-                                        <input type="text" class="form-control" id="loading_finish_time" name="loading_finish_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
+                                        <label for="loading_finish_time" class="form-label">LOADING SCHEDULE FINISH TIME <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="loading_finish_time" name="loading_finish_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="delivery_departure_date" class="form-label">DELIVERY DEPARTURE DATE</label>
-                                        <input type="text" class="form-control" id="delivery_departure_date" name="delivery_departure_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                        <label for="delivery_departure_date" class="form-label">DELIVERY DEPARTURE DATE <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="delivery_departure_date" name="delivery_departure_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="delivery_departure_time" class="form-label">DELIVERY DEPARTURE TIME</label>
-                                        <input type="text" class="form-control" id="delivery_departure_time" name="delivery_departure_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
+                                        <label for="delivery_departure_time" class="form-label">DELIVERY DEPARTURE TIME <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="delivery_departure_time" name="delivery_departure_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="delivery_arrival_date" class="form-label">DELIVERY ARRIVAL DATE</label>
-                                        <input type="text" class="form-control" id="delivery_arrival_date" name="delivery_arrival_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                        <label for="delivery_arrival_date" class="form-label">DELIVERY ARRIVAL DATE <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="delivery_arrival_date" name="delivery_arrival_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="delivery_arrival_time" class="form-label">DELIVERY ARRIVAL TIME</label>
-                                        <input type="text" class="form-control" id="delivery_arrival_time" name="delivery_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
+                                        <label for="delivery_arrival_time" class="form-label">DELIVERY ARRIVAL TIME <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="delivery_arrival_time" name="delivery_arrival_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="end_unloading_start_date" class="form-label">END OF UNLOADING START DATE</label>
-                                        <input type="text" class="form-control" id="end_unloading_start_date" name="end_unloading_start_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                        <label for="end_unloading_start_date" class="form-label">END OF UNLOADING DATE <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="end_unloading_start_date" name="end_unloading_start_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="end_unloading_start_time" class="form-label">END OF UNLOADING START TIME</label>
-                                        <input type="text" class="form-control" id="end_unloading_start_time" name="end_unloading_start_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
+                                        <label for="end_unloading_start_time" class="form-label">END OF UNLOADING TIME <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="end_unloading_start_time" name="end_unloading_start_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM" required>
                                     </div>
                                     <div class="col-md-6" hidden>
                                         <label for="end_unloading_finish_date" class="form-label">END OF UNLOADING FINISH DATE</label>
@@ -259,32 +259,32 @@ $result = $stmt->get_result();
                                         <input type="text" class="form-control" id="reference_documents" name="reference_documents">
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="dr_no" class="form-label">DR. NO.</label>
-                                        <input type="text" class="form-control" id="dr_no" name="dr_no">
+                                        <label for="dr_no" class="form-label">DR. NO. <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="dr_no" name="dr_no" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="load" class="form-label">LOAD</label>
-                                        <input type="text" class="form-control" id="load" name="load">
+                                        <label for="load" class="form-label">LOAD <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="load" name="load" required>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="pm2" class="form-label">PM (Prime Mover)</label>
-                                            <input type="text" class="form-control" id="pm2" name="pm2" autocomplete="off">
+                                            <label for="pm2" class="form-label">PM (Prime Mover) <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="pm2" name="pm2" autocomplete="off" required>
                                             <ul id="pm2List" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1020; display: none; max-height: 240px; overflow-y: auto;"></ul>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
-                                            <label for="driver2" class="form-label">DRIVER</label>
-                                            <input type="text" class="form-control" id="driver2" name="driver2" autocomplete="off">
+                                            <label for="driver2" class="form-label">DRIVER <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="driver2" name="driver2" autocomplete="off" required>
                                             <ul id="driver2List" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1010; display: none; max-height: 240px; overflow-y: auto;"></ul>
                                             <input type="hidden" id="driver_idNumber2" name="driver_idNumber2">
                                         </div>
                                     </div>
                                     <div class="col-md-12">
                                         <div class="mb-3 position-relative">
-                                            <label for="delivered_to" class="form-label">DELIVERED TO: STATE THE LOCATION</label>
-                                            <input type="text" class="form-control" id="delivered_to" name="delivered_to" autocomplete="off" placeholder="Search location">
+                                            <label for="delivered_to" class="form-label">DELIVERED TO: STATE THE LOCATION <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="delivered_to" name="delivered_to" autocomplete="off" placeholder="Search location" required>
                                             <ul id="deliveredToList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1050; display: none; max-height: 240px; overflow-y: auto;"></ul>
                                         </div>
                                     </div>
@@ -298,12 +298,12 @@ $result = $stmt->get_result();
                                         <input type="text" class="form-control" id="genset_hr_meter" name="genset_hr_meter">
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="hr_meter_start" class="form-label">HR METER START</label>
-                                        <input type="text" class="form-control" id="hr_meter_start" name="hr_meter_start">
+                                        <label for="hr_meter_start" class="form-label">HR METER START <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="hr_meter_start" name="hr_meter_start" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="hr_meter_end" class="form-label">HR METER END</label>
-                                        <input type="text" class="form-control" id="hr_meter_end" name="hr_meter_end">
+                                        <label for="hr_meter_end" class="form-label">HR METER END <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="hr_meter_end" name="hr_meter_end" required>
                                     </div>
                                     <h5>GENSET HR READING</h5>
                                     <div class="col-md-12" hidden>
@@ -311,20 +311,20 @@ $result = $stmt->get_result();
                                         <input type="text" class="form-control" id="genset_hr_reading" name="genset_hr_reading">
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="gs_start_date" class="form-label">GS START DATE</label>
-                                        <input type="text" class="form-control" id="gs_start_date" name="gs_start_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                        <label for="gs_start_date" class="form-label">GS START DATE <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="gs_start_date" name="gs_start_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="gs_start_time" class="form-label">GS START TIME</label>
-                                        <input type="text" class="form-control" id="gs_start_time" name="gs_start_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
+                                        <label for="gs_start_time" class="form-label">GS START TIME <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="gs_start_time" name="gs_start_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="gs_end_date" class="form-label">GS END DATE</label>
-                                        <input type="text" class="form-control" id="gs_end_date" name="gs_end_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                        <label for="gs_end_date" class="form-label">GS END DATE <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="gs_end_date" name="gs_end_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="gs_end_time" class="form-label">GS END TIME</label>
-                                        <input type="text" class="form-control" id="gs_end_time" name="gs_end_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
+                                        <label for="gs_end_time" class="form-label">GS END TIME <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="gs_end_time" name="gs_end_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM" required>
                                     </div>
                                     <div class="col-md-12">
                                         <label for="refueled" class="form-label">REFUELED</label>
@@ -970,6 +970,23 @@ $result = $stmt->get_result();
                 return displayTime;
             }
 
+            // Validate and parse DB-formatted date/time strings
+            function isValidDBDate(d) {
+                return /^\d{4}-\d{2}-\d{2}$/.test(d);
+            }
+
+            function isValidDBTime(t) {
+                return /^\d{2}:\d{2}$/.test(t);
+            }
+
+            function parseDBDateTime(d, t) {
+                if (!d || !isValidDBDate(d)) return null;
+                if (!t || !isValidDBTime(t)) t = '00:00';
+                const parts = d.split('-');
+                const timeParts = t.split(':');
+                return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), parseInt(timeParts[0], 10), parseInt(timeParts[1], 10), 0);
+            }
+
             function getValues() {
                 const values = {
                     id: document.getElementById("data_id").value,
@@ -1055,6 +1072,34 @@ $result = $stmt->get_result();
                     Swal.fire('Missing field', 'Segment is required.', 'warning');
                     return;
                 }
+
+                // Chronological order validations
+                function validateSequence(pairs, labelSequence) {
+                    const dt = pairs.map(p => parseDBDateTime(values[p[0]], values[p[1]]));
+                    for (let i = 0; i < dt.length - 1; i++) {
+                        if (dt[i] && dt[i+1] && dt[i].getTime() > dt[i+1].getTime()) {
+                            const lblPrev = labelSequence[i] || 'previous';
+                            const lblNext = labelSequence[i+1] || 'next';
+                            Swal.fire('Invalid sequence', `${lblNext} must be the same or after ${lblPrev}.`, 'warning');
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+
+                if (!validateSequence([
+                    ['pullout_location_arrival_date', 'pullout_location_arrival_time'],
+                    ['pullout_location_departure_date', 'pullout_location_departure_time'],
+                    ['ph_arrival_date', 'ph_arrival_time']
+                ], ['Pullout Location - Arrival','Pullout Location - Departure','PH Arrival'])) return;
+
+                if (!validateSequence([
+                    ['loaded_van_loading_start_date', 'loaded_van_loading_start_time'],
+                    ['loaded_van_loading_finish_date', 'loaded_van_loading_finish_time'],
+                    ['loaded_van_delivery_departure_date', 'loaded_van_delivery_departure_time'],
+                    ['loaded_van_delivery_arrival_date', 'loaded_van_delivery_arrival_time'],
+                    ['end_uploading_date', 'end_uploading_time']
+                ], ['Loading Schedule Start','Loading Schedule Finish','Delivery Departure','Delivery Arrival','End of Unloading Start'])) return;
                 $.ajax({
                     url: values.id ? 'php/update/rv.php' : 'php/insert/rv.php',
                     type: 'POST',

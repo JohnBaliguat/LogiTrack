@@ -87,6 +87,7 @@
                 <div class="card">
                     <div class="card-header bg-white">
                         <h5 class="mb-0">Daily Driver Payroll</h5>
+                        <small class="text-muted">RV and Dry Van split empty/loaded earnings when different drivers are assigned.</small>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">

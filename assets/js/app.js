@@ -169,47 +169,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const activityChart = document.getElementById('activityChart');
-    if (activityChart) {
-        const ctx = activityChart.getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Entries',
-                    data: [45, 52, 38, 65, 48, 35, 42],
-                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                    borderColor: 'rgba(102, 126, 234, 1)',
-                    borderWidth: 2,
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-    }
-
     const filterButtons = document.querySelectorAll('[data-filter]');
     filterButtons.forEach(button => {
         button.addEventListener('click', function(e) {

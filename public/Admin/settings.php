@@ -21,32 +21,38 @@
             <div class="main-content">
                 <div class="content-header mb-4">
                     <h2 class="fw-bold">Settings</h2>
-                    <p class="text-muted">Insert, update, and delete master data for units, trailers, locations, and trip rates.</p>
+                    <p class="text-muted">Insert, update, and delete master data for units, trailers, locations, trip rates, and SKU.</p>
                 </div>
 
                 <div class="row g-4 mb-4">
-                    <div class="col-md-3">
+                    <div class="col-md-6 col-xl">
                         <div class="stat-card-simple">
                             <div class="stat-icon-simple bg-primary"><i class="bi bi-geo-alt-fill"></i></div>
                             <div><h3 id="locationCount">0</h3><p>Locations</p></div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-6 col-xl">
                         <div class="stat-card-simple">
                             <div class="stat-icon-simple bg-success"><i class="bi bi-bezier2"></i></div>
                             <div><h3 id="trailerCount">0</h3><p>Trailers</p></div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-6 col-xl">
                         <div class="stat-card-simple">
                             <div class="stat-icon-simple bg-warning"><i class="bi bi-cash-stack"></i></div>
                             <div><h3 id="tripRatesCount">0</h3><p>Trip Rates</p></div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-6 col-xl">
                         <div class="stat-card-simple">
                             <div class="stat-icon-simple bg-danger"><i class="bi bi-truck"></i></div>
                             <div><h3 id="unitsCount">0</h3><p>Units</p></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl">
+                        <div class="stat-card-simple">
+                            <div class="stat-icon-simple bg-info"><i class="bi bi-upc-scan"></i></div>
+                            <div><h3 id="skuCount">0</h3><p>SKU</p></div>
                         </div>
                     </div>
                 </div>
@@ -58,6 +64,7 @@
                             <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#trailersPane" type="button">Trailers</button></li>
                             <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tripRatesPane" type="button">Trip Rates</button></li>
                             <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#unitsPane" type="button">Units</button></li>
+                            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#skuPane" type="button">SKU</button></li>
                         </ul>
                     </div>
                     <div class="card-body">
@@ -113,6 +120,20 @@
                                     <table class="table table-hover align-middle" id="unitsTable">
                                         <thead class="table-light">
                                             <tr><th>ID</th><th>Unit Name</th><th>Unit STD</th><th>Unit Model</th><th>Unit Cluster</th><th>Actions</th></tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="skuPane">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">SKU</h5>
+                                    <button class="btn btn-primary btn-add-item" data-entity="sku"><i class="bi bi-plus-circle me-1"></i>Add SKU</button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle" id="skuTable">
+                                        <thead class="table-light">
+                                            <tr><th>ID</th><th>SKU Name</th><th>Shipper Segment</th><th>Farm</th><th>Roundtrip Distance</th><th>Actions</th></tr>
                                         </thead>
                                         <tbody></tbody>
                                     </table>
@@ -199,6 +220,17 @@
                         { name: 'unit_std', label: 'Unit STD' },
                         { name: 'unit_model', label: 'Unit Model' },
                         { name: 'unit_cluster', label: 'Unit Cluster' }
+                    ]
+                },
+                sku: {
+                    label: 'SKU',
+                    idField: 'sku_id',
+                    table: new DataTable('#skuTable'),
+                    fields: [
+                        { name: 'sku_name', label: 'SKU Name', required: true },
+                        { name: 'sku_shipper_segment', label: 'SKU Shipper Segment' },
+                        { name: 'sku_farm', label: 'SKU Farm' },
+                        { name: 'sku_rountripDistance', label: 'Roundtrip Distance' }
                     ]
                 }
             };
@@ -293,6 +325,17 @@
                         ];
                     }
 
+                    if (entity === 'sku') {
+                        return [
+                            `<strong>#${row.sku_id}</strong>`,
+                            escapeHtml(row.sku_name || ''),
+                            escapeHtml(row.sku_shipper_segment || '-'),
+                            escapeHtml(row.sku_farm || '-'),
+                            escapeHtml(row.sku_rountripDistance || '-'),
+                            actionButtons(entity, row)
+                        ];
+                    }
+
                     return [
                         `<strong>#${row.unit_id}</strong>`,
                         escapeHtml(row.unit_name || ''),
@@ -313,6 +356,7 @@
                 document.getElementById('trailerCount').textContent = String((data.trailer || []).length);
                 document.getElementById('tripRatesCount').textContent = String((data.trip_rates || []).length);
                 document.getElementById('unitsCount').textContent = String((data.units || []).length);
+                document.getElementById('skuCount').textContent = String((data.sku || []).length);
             }
 
             async function loadData() {

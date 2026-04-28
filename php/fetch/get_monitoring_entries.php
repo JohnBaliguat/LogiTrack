@@ -12,8 +12,13 @@ $sql = "SELECT
     activity,
     waybill_date,
     waybill,
+    waybill_empty,
     truck,
+    truck2,
     driver,
+    driver_return,
+    date_hauled,
+    date_returned,
     remarks,
     customer_ph,
     outside,
@@ -54,7 +59,22 @@ $sql = "SELECT
     van_name,
     shipper,
     ecs,
+    eir_out,
+    eir_outDate,
+    eir_outTime,
+    eir_in,
+    eir_inDate,
+    pullout_location,
+    pullout_date,
     prime_mover,
+    tr2,
+    date_unloaded,
+    departure_time,
+    arrival_time,
+    return_location,
+    size,
+    booking,
+    shipment_no,
     empty_pullout_location,
     loaded_van_loading_start_date,
     loaded_van_loading_start_time,
@@ -81,7 +101,7 @@ $sql = "SELECT
     created_date,
     modified_date
 FROM operations
-WHERE entry_type IN ('CARGO TRUCK ENTRY', 'DPC_KDs & OPM ENTRY', 'OTHERS ENTRY', 'RV ENTRY')
+WHERE entry_type IN ('CARGO TRUCK ENTRY', 'DPC_KDs & OPM ENTRY', 'OTHERS ENTRY', 'RV ENTRY', 'DRY VAN ENTRY')
 ORDER BY
     CASE WHEN TRIM(COALESCE(waybill, '')) = '' THEN 1 ELSE 0 END ASC,
     waybill ASC,
@@ -102,14 +122,26 @@ $records = [];
 while ($row = mysqli_fetch_assoc($result)) {
     $normalizedType = operations_normalize_entry_type($row["entry_type"] ?? "");
     $missingFields = operations_missing_fields($row);
+    $waybills = array_values(array_unique(array_filter([
+        trim((string) ($row["waybill"] ?? "")),
+        trim((string) ($row["waybill_empty"] ?? "")),
+    ], fn($value) => $value !== "")));
+    $drivers = array_values(array_unique(array_filter([
+        trim((string) ($row["driver"] ?? "")),
+        trim((string) ($row["driver_return"] ?? "")),
+    ], fn($value) => $value !== "")));
+    $vanParts = array_values(array_unique(array_filter([
+        trim((string) ($row["van_alpha"] ?? "")),
+        trim((string) ($row["van_number"] ?? "")),
+        trim((string) ($row["van_name"] ?? "")),
+    ], fn($value) => $value !== "")));
 
     $records[] = [
         "entry_id" => (int) $row["entry_id"],
         "entry_type" => $row["entry_type"],
-        "segment" => $row["segment"],
-        "activity" => $row["activity"],
-        "waybill" => $row["waybill"],
-        "driver" => $row["driver"],
+        "waybills" => $waybills,
+        "drivers" => $drivers,
+        "van" => implode(" ", $vanParts),
         "remarks" => $row["remarks"],
         "created_date" => $row["created_date"],
         "modified_date" => $row["modified_date"],

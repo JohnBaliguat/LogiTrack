@@ -11,7 +11,7 @@ if ($id <= 0) {
     exit;
 }
 
-$sql = "SELECT entry_id, entry_type, segment, activity, waybill_date, others_date, cargo_date, dpc_date, pullout_location_arrival_date, production_date, finished_loading_date, created_date, waybill, truck, driver, driver_idNumber, tr, gs, operations_ph, customer_ph, load_quantity_weight, unit_of_measure, deliver_from, delivered_to, remarks FROM operations WHERE entry_id = ?";
+$sql = "SELECT entry_id, entry_type, segment, activity, waybill_date, others_date, cargo_date, dpc_date, pullout_location_arrival_date, production_date, finished_loading_date, created_date, waybill, truck, driver, driver_idNumber, tr, gs, operations_ph, customer_ph, load_quantity_weight, unit_of_measure, kms, deliver_from, delivered_to, remarks FROM operations WHERE entry_id = ?";
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {

@@ -73,19 +73,36 @@ $sql = "SELECT
     van_number,
     van_name,
     ph,
+    customer_ph,
+    operations_ph,
     shipper,
     waybill_empty,
     tr,
     gs,
     prime_mover,
+    truck,
     driver,
     empty_pullout_location,
-    loaded_van_delivery_arrival_date,
-    loaded_van_delivery_arrival_time,
+    pullout_location,
+    deliver_from,
+    date_hauled,
+    eir_outDate,
+    eir_outTime,
+    date_unloaded,
+    arrival_time,
+    ph_departure_date,
+    ph_departure_time,
     dr_no,
+    slp_no,
     load_description,
+    load_quantity_weight,
+    unit_of_measure,
+    total_load,
+    destination,
     total_trips,
     remarks,
+    delivered_remarks,
+    size,
     piece_rate
 FROM operations
 WHERE DATE(created_date) BETWEEN ? AND ?
@@ -107,17 +124,65 @@ if (!$stmt->execute()) {
 
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
-    $unloadingDateTime = trim(
-        (string) (($row["loaded_van_delivery_arrival_date"] ?? "") .
-            " " .
-            ($row["loaded_van_delivery_arrival_time"] ?? "")),
-    );
+    $entryTypeValue = trim((string) ($row["entry_type"] ?? ""));
+    $isDryVan = $entryTypeValue === "DRY VAN ENTRY";
+    $isOthers = $entryTypeValue === "OTHERS ENTRY";
+
+    // Transaction Date
+    if ($isDryVan) {
+        $transactionDate = trim((string) ($row["date_hauled"] ?? ""));
+    } elseif ($isOthers) {
+        $transactionDate = trim((string) ($row["waybill_date"] ?? ""));
+    } else {
+        $transactionDate = trim((string) ($row["waybill_date"] ?? ""));
+    }
+
+    // Prime Mover
+    $pmValue = ($isDryVan || $isOthers)
+        ? trim((string) ($row["truck"] ?? ""))
+        : trim((string) ($row["prime_mover"] ?? $row["truck"] ?? ""));
+
+    // Pull-Out Location
+    if ($isDryVan) {
+        $pulloutLocation = trim((string) ($row["pullout_location"] ?? ""));
+    } elseif ($isOthers) {
+        $pulloutLocation = trim((string) ($row["deliver_from"] ?? ""));
+    } else {
+        $pulloutLocation = trim((string) ($row["empty_pullout_location"] ?? ""));
+    }
+
+    // Date & Time of Van Unloading
+    if ($isDryVan) {
+        $unloadingDateTime = trim(($row["date_unloaded"] ?? "") . " " . ($row["arrival_time"] ?? ""));
+    } else {
+        $unloadingDateTime = trim(($row["ph_departure_date"] ?? "") . " " . ($row["ph_departure_time"] ?? ""));
+    }
+
+    // DR Receipt
+    $drValue = $isDryVan ? trim((string) ($row["slp_no"] ?? "")) : trim((string) ($row["dr_no"] ?? ""));
+
+    // Load
+    if ($isDryVan) {
+        $loadValue = trim((string) ($row["destination"] ?? ""));
+    } elseif ($isOthers) {
+        $qty = trim((string) ($row["load_quantity_weight"] ?? ""));
+        $uom = trim((string) ($row["unit_of_measure"] ?? ""));
+        $loadValue = $uom !== "" ? trim($qty . " " . $uom) : $qty;
+    } else {
+        $loadValue = trim((string) ($row["load_description"] ?? $row["total_load"] ?? ""));
+    }
+
+    // Van Size
+    $vanSize = $isDryVan ? trim((string) ($row["size"] ?? "")) : "";
+
+    // Remarks
+    $remarks = trim((string) (($row["remarks"] ?? "") !== "" ? $row["remarks"] : ($row["delivered_remarks"] ?? "")));
 
     fputcsv($output, [
         $row["entry_id"] ?? "",
         $row["entry_type"] ?? "",
         $row["created_date"] ?? "",
-        $row["waybill_date"] ?? "",
+        $transactionDate,
         $row["billing_sku"] ?? "",
         $row["waybill"] ?? "",
         $row["segment"] ?? "",
@@ -130,17 +195,16 @@ while ($row = $result->fetch_assoc()) {
         $row["waybill_empty"] ?? "",
         $row["tr"] ?? "",
         $row["gs"] ?? "",
-        $row["prime_mover"] ?? "",
+        $pmValue,
         $row["driver"] ?? "",
-        $row["empty_pullout_location"] ?? "",
+        $pulloutLocation,
         $unloadingDateTime,
-        $row["dr_no"] ?? "",
-        $row["load_description"] ?? "",
+        $drValue,
+        $loadValue,
         $row["total_trips"] ?? "",
-        $row["remarks"] ?? "",
+        $remarks,
         "",
-        "",
-        "",
+        $vanSize,
         "",
         "",
         "",

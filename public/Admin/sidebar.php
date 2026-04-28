@@ -32,6 +32,12 @@
                                 <span>Monitoring</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="records" id="rnav">
+                                <i class="bi bi-journal-text"></i>
+                                <span>Records</span>
+                            </a>
+                        </li>
                         <?php } ?>
                         <?php if ($role === "Admin") { ?>
                         <li class="nav-item">

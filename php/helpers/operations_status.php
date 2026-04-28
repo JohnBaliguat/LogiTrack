@@ -120,11 +120,189 @@ function operations_required_fields_by_type(): array
     ];
 }
 
+function operations_dry_van_required_fields(string $customer): array
+{
+    $customer = strtoupper(trim($customer));
+
+    $configs = [
+        "CITIHARDWARE IMPORTS" => [
+            "customer_ph" => "Customer",
+            "waybill" => "Waybill No. - Loaded",
+            "date_hauled" => "Date Hauled",
+            "van_alpha" => "Van Alpha",
+            "van_number" => "Van Numeric",
+            "shipper" => "Shipping Line",
+            "pullout_location" => "Pull Out Location",
+            "eir_out" => "EIR Out",
+            "eir_outDate" => "EIR Out Date",
+            "eir_outTime" => "EIR Out Time",
+            "departure_time" => "Departure Time",
+            "arrival_time" => "Arrival Time",
+            "date_unloaded" => "Date of Unloading",
+            "shipment_no" => "Shipment No.",
+            "booking" => "BL No.",
+            "size" => "Volume Size",
+            "truck" => "Prime Mover - Loaded",
+            "tr" => "Trailer No.",
+            "driver" => "Driver's Name (Loaded)",
+            "waybill_empty" => "Waybill No. - Empty",
+            "eir_in" => "EIR In",
+            "return_location" => "Return Location",
+            "date_returned" => "Actual Date Returned",
+            "truck2" => "Prime Mover - Empty",
+            "driver_return" => "Driver's Name (Empty)",
+        ],
+        "TPD DRYVAN IMPORT" => [
+            "customer_ph" => "Customer",
+            "waybill" => "Waybill No. - Loaded",
+            "date_hauled" => "Date Hauled",
+            "van_alpha" => "Van Alpha",
+            "van_number" => "Van Numeric",
+            "shipper" => "Shipping Line",
+            "pullout_location" => "Pull Out Location",
+            "eir_out" => "EIR Out",
+            "eir_outDate" => "EIR Out Date",
+            "eir_outTime" => "EIR Out Time",
+            "departure_time" => "Departure Time",
+            "arrival_time" => "Arrival Time",
+            "date_unloaded" => "Date of Unloading",
+            "booking" => "BL No.",
+            "size" => "Volume Size",
+            "truck" => "Prime Mover - Loaded",
+            "tr" => "Trailer No.",
+            "driver" => "Driver's Name (Loaded)",
+            "waybill_empty" => "Waybill No. - Empty",
+            "eir_in" => "EIR In",
+            "return_location" => "Return Location",
+            "date_returned" => "Actual Date Returned",
+            "truck2" => "Prime Mover - Empty",
+            "driver_return" => "Driver's Name (Empty)",
+        ],
+        "CITIHARDWARE DOMESTIC" => [
+            "customer_ph" => "Customer",
+            "waybill_empty" => "Waybill No. - Empty",
+            "van_alpha" => "Van Alpha",
+            "van_number" => "Van Numeric",
+            "shipper" => "Shipping Line",
+            "pullout_date" => "Pull Out Date",
+            "pullout_location" => "Pull Out Location",
+            "eir_out" => "EIR Out",
+            "eir_outDate" => "EIR Out Date",
+            "departure_time" => "Departure",
+            "truck2" => "Prime Mover - Empty",
+            "driver_return" => "Driver's Name (Empty)",
+            "waybill" => "Waybill No. - Loaded",
+            "date_hauled" => "Date Hauled",
+            "delivered_to" => "Delivery Location",
+            "eir_in" => "EIR In",
+            "tr" => "Trailer No.",
+            "truck" => "Prime Mover - Loaded",
+            "driver" => "Driver's Name (Loaded)",
+        ],
+        "TPD DRYVAN EXPORT" => [
+            "customer_ph" => "Customer",
+            "waybill_empty" => "Waybill No. - Empty",
+            "van_alpha" => "Van Alpha",
+            "van_number" => "Van Numeric",
+            "shipper" => "Shipping Line",
+            "pullout_date" => "Pull Out Date",
+            "pullout_location" => "Pull Out Location",
+            "eir_out" => "EIR Out",
+            "eir_outDate" => "EIR Out Date",
+            "departure_time" => "Departure",
+            "truck2" => "Prime Mover - Empty",
+            "driver_return" => "Driver's Name (Empty)",
+            "waybill" => "Waybill No. - Loaded",
+            "date_hauled" => "Date Hauled",
+            "delivered_to" => "Delivery Location",
+            "eir_in" => "EIR In",
+            "tr" => "Trailer No.",
+            "truck" => "Prime Mover - Loaded",
+            "driver" => "Driver's Name (Loaded)",
+        ],
+    ];
+
+    $otherImportCustomers = [
+        "ECOSSENTIAL - IMPORT",
+        "NOVOCOCONUT - IMPORT",
+        "FRANKLIN BAKER - IMPORT",
+        "EYE CARGO - IMPORT",
+        "PHIL JDU - IMPORT",
+        "SOUTHERN HARVEST - IMPORT",
+        "HEADSPORT - IMPORT",
+        "AGRI EXIM - IMPORT",
+        "SOLARIS - IMPORT",
+    ];
+
+    $otherExportCustomers = [
+        "ECOSSENTIAL - EXPORT",
+        "NOVOCOCONUT - EXPORT",
+        "FRANKLIN BAKER - EXPORT",
+        "EYE CARGO - EXPORT",
+        "PHIL JDU - EXPORT",
+        "SOUTHERN HARVEST - EXPORT",
+        "HEADSPORT - EXPORT",
+        "AGRI EXIM - EXPORT",
+        "SOLARIS - EXPORT",
+    ];
+
+    foreach ($otherImportCustomers as $name) {
+        $configs[$name] = [
+            "customer_ph" => "Customer",
+            "waybill" => "Waybill No. - Loaded",
+            "date_hauled" => "Date Hauled",
+            "van_alpha" => "Van Alpha",
+            "van_number" => "Van Numeric",
+            "shipper" => "Shipping Line",
+            "pullout_location" => "Pull Out Location",
+            "eir_out" => "EIR Out",
+            "truck" => "Prime Mover - Loaded",
+            "tr" => "Trailer No.",
+            "driver" => "Driver's Name (Loaded)",
+            "waybill_empty" => "Waybill No. - Empty",
+            "date_returned" => "Actual Date Returned",
+            "return_location" => "Return Location",
+            "eir_in" => "EIR In",
+            "truck2" => "Prime Mover - Empty",
+            "driver_return" => "Driver's Name (Empty)",
+        ];
+    }
+
+    foreach ($otherExportCustomers as $name) {
+        $configs[$name] = [
+            "customer_ph" => "Customer",
+            "waybill_empty" => "Waybill No. - Empty",
+            "van_alpha" => "Van Alpha",
+            "van_number" => "Van Numeric",
+            "shipper" => "Shipping Line",
+            "pullout_date" => "Pull Out Date",
+            "pullout_location" => "Pull Out Location",
+            "eir_out" => "EIR Out",
+            "truck2" => "Prime Mover - Empty",
+            "tr" => "Trailer No. - Empty",
+            "driver_return" => "Driver's Name (Empty)",
+            "waybill" => "Waybill No. - Loaded",
+            "date_hauled" => "Date Hauled",
+            "delivered_to" => "Delivery Location",
+            "eir_in" => "EIR In",
+            "tr2" => "Trailer No. - Loaded",
+            "truck" => "Prime Mover - Loaded",
+            "driver" => "Driver's Name (Loaded)",
+        ];
+    }
+
+    return $configs[$customer] ?? [
+        "customer_ph" => "Customer",
+        "waybill" => "Waybill",
+    ];
+}
+
 function operations_route_by_type(): array
 {
     return [
         "CARGO TRUCK ENTRY" => "cargoTruck",
         "DPC_KDs & OPM ENTRY" => "DPC_KDI",
+        "DRY VAN ENTRY" => "dryVan",
         "OTHERS ENTRY" => "others",
         "RV ENTRY" => "rv",
     ];
@@ -133,13 +311,14 @@ function operations_route_by_type(): array
 function operations_missing_fields(array $row): array
 {
     $requiredByType = operations_required_fields_by_type();
-    $required = $requiredByType[
-        operations_normalize_entry_type($row["entry_type"] ?? "")
-    ] ?? [
+    $normalizedType = operations_normalize_entry_type($row["entry_type"] ?? "");
+    $required = $normalizedType === "DRY VAN ENTRY"
+        ? operations_dry_van_required_fields($row["customer_ph"] ?? "")
+        : ($requiredByType[$normalizedType] ?? [
         "segment" => "Segment",
         "activity" => "Activity",
         "waybill" => "Waybill",
-    ];
+    ]);
 
     $missing = [];
 

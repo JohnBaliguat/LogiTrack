@@ -44,7 +44,7 @@ $result = $stmt->get_result();
                             <a class="btn btn-outline-secondary" href="sumiRv">Sumi/Farmined RV</a>
                             <a class="btn btn-outline-secondary" href="tdcRv">TDC/Good Farmer RV</a>
                             <a class="btn btn-outline-secondary" href="others">Others</a>
-                            <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDI & OPM</a>
+                            <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDS & OPM</a>
                             <a class="btn btn-outline-secondary" href="cargoTruck">Cargo Truck</a>
                             <a class="btn btn-outline-secondary" href="dryVan">Dry Van</a>
                         </div>
@@ -64,68 +64,68 @@ $result = $stmt->get_result();
                             <form id="dataEntryForm">
                                 <input type="hidden" id="data_id" name="data_id" value="">
                                 <div class="row g-3">
-                                    <div class="col-md-6 position-relative">
+                                    <div class="col-md-6 position-relative" hidden>
                                         <label for="segment" class="form-label">Segment</label>
-                                        <input type="text" class="form-control" id="segment" required>
+                                        <input type="text" class="form-control" id="segment">
                                         <ul id="segmentList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                     </div>
-                                    <div class="col-md-6 position-relative">
+                                    <div class="col-md-6 position-relative" hidden>
                                         <label for="activity" class="form-label">Activity</label>
-                                        <input type="text" class="form-control" id="activity" required>
+                                        <input type="text" class="form-control" id="activity">
                                         <ul id="activityList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="date" class="form-label">DATE</label>
-                                        <input type="text" class="form-control" id="date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                        <label for="date" class="form-label">DATE <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="waybill" class="form-label">WAYBILL</label>
-                                        <input type="text" class="form-control" id="waybill">
+                                        <label for="waybill" class="form-label">WAYBILL <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="waybill" required>
                                     </div>
                                     <div class="col-md-6 position-relative">
-                                        <label for="truck" class="form-label">TRUCK</label>
-                                        <input type="text" class="form-control" id="truck">
+                                        <label for="truck" class="form-label">TRUCK <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="truck" required>
                                         <ul id="truckList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                     </div>
                                     <div class="col-md-6 position-relative">
-                                        <label for="driver" class="form-label">DRIVER</label>
-                                        <input type="text" class="form-control" id="driver">
+                                        <label for="driver" class="form-label">DRIVER <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="driver" required>
                                         <ul id="driverList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                         <input type="hidden" id="driver_idNumber" name="driver_idNumber">
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="customer_ph" class="form-label">CUSTOMER/PH</label>
-                                        <input type="text" class="form-control" id="customer_ph">
+                                        <label for="customer_ph" class="form-label">CUSTOMER/PH <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="customer_ph" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="outside" class="form-label">OUTSIDE</label>
-                                        <input type="text" class="form-control" id="outside">
+                                        <label for="outside" class="form-label">OUTSIDE <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="outside" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="compound" class="form-label">COMPOUND</label>
-                                        <input type="text" class="form-control" id="compound">
+                                        <label for="compound" class="form-label">COMPOUND <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="compound" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="total_trips" class="form-label">TOTAL TRIPS</label>
-                                        <input type="text" class="form-control" id="total_trips">
+                                        <label for="total_trips" class="form-label">TOTAL TRIPS <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="total_trips" required>
                                     </div>
                                     <div class="col-md-12">
-                                        <label for="operations" class="form-label">OPERATIONS</label>
-                                        <input type="text" class="form-control" id="operations">
+                                        <label for="operations" class="form-label">OPERATIONS <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="operations" required>
                                     </div>
                                     <div class="col-md-6 position-relative">
-                                        <label for="deliver_from" class="form-label">DELIVER FROM</label>
-                                        <input type="text" class="form-control" id="deliver_from" autocomplete="off" placeholder="Search location">
+                                        <label for="deliver_from" class="form-label">DELIVER FROM <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="deliver_from" autocomplete="off" placeholder="Search location" required>
                                         <ul id="deliverFromList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                     </div>
                                     <div class="col-md-6 position-relative">
-                                        <label for="deliver_to" class="form-label">DELIVER TO</label>
-                                        <input type="text" class="form-control" id="deliver_to" autocomplete="off" placeholder="Search location">
+                                        <label for="deliver_to" class="form-label">DELIVER TO <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="deliver_to" autocomplete="off" placeholder="Search location" required>
                                         <ul id="deliverToList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                     </div>
                                     <div class="col-md-6" hidden>
-                                        <label for="cargo_date" class="form-label">CARGO DATE</label>
-                                        <input type="text" class="form-control" id="cargo_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                        <label for="cargo_date" class="form-label">CARGO DATE <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="cargo_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
                                     </div>
                                     <div class="col-md-12">
                                         <label for="remarks" class="form-label">REMARKS</label>

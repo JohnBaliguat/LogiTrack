@@ -94,11 +94,9 @@
                             <table class="table table-hover align-middle" id="monitoringTable">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>ID</th>
                                         <th>Entry Type</th>
                                         <th>Waybill</th>
-                                        <th>Segment</th>
-                                        <th>Activity</th>
+                                        <th>Van</th>
                                         <th>Driver</th>
                                         <th>Status</th>
                                         <th>Missing Fields</th>
@@ -135,14 +133,12 @@
             const refreshButton = document.getElementById('refreshButton');
 
             const table = new DataTable('#monitoringTable', {
-                order: [[2, 'asc'], [0, 'desc']],
+                order: [[1, 'asc'], [6, 'desc']],
                 pageLength: 25,
                 columns: [
-                    { data: 'id' },
                     { data: 'entry_type' },
                     { data: 'waybill' },
-                    { data: 'segment' },
-                    { data: 'activity' },
+                    { data: 'van' },
                     { data: 'driver' },
                     { data: 'status' },
                     { data: 'missing_fields' },
@@ -183,7 +179,12 @@
             }
 
             function buildRow(record) {
-                const safeWaybill = record.waybill ? escapeHtml(record.waybill) : '<span class="text-muted">No waybill</span>';
+                const safeWaybill = record.waybills && record.waybills.length
+                    ? record.waybills.map(value => `<div>${escapeHtml(value)}</div>`).join('')
+                    : '<span class="text-muted">No waybill</span>';
+                const safeDriver = record.drivers && record.drivers.length
+                    ? record.drivers.map(value => `<div>${escapeHtml(value)}</div>`).join('')
+                    : '<span class="text-muted">-</span>';
                 const safeMissing = record.missing_fields.length
                     ? escapeHtml(record.missing_fields.join(', '))
                     : '<span class="text-success">Complete</span>';
@@ -193,12 +194,10 @@
                 const rowClass = record.is_complete ? 'monitor-row-complete' : 'monitor-row-incomplete';
 
                 return {
-                    id: `<strong>#${record.entry_id}</strong>`,
                     entry_type: escapeHtml(record.entry_type),
                     waybill: safeWaybill,
-                    segment: escapeHtml(record.segment || '-'),
-                    activity: escapeHtml(record.activity || '-'),
-                    driver: escapeHtml(record.driver || '-'),
+                    van: record.van ? escapeHtml(record.van) : '<span class="text-muted">-</span>',
+                    driver: safeDriver,
                     status: statusBadge,
                     missing_fields: safeMissing,
                     updated_at: formatStamp(record.modified_date || record.created_date),

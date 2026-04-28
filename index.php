@@ -14,6 +14,8 @@ function requireLogin(string $route): void
     if (
         $route !== "login" &&
         $route !== "login-handler" &&
+        $route !== "microsoft-login" &&
+        $route !== "microsoft-callback" &&
         $route !== "logout" &&
         !isLoggedIn()
     ) {
@@ -107,6 +109,7 @@ function isRouteAllowed(string $route, string $userType): bool
             "tdcRv",
             "dryVan",
             "drivers",
+            "records",
         ],
         "User" => [
             "dashboard",
@@ -139,7 +142,17 @@ if ($route === "login" && isLoggedIn()) {
 
 if (
     isLoggedIn() &&
-    !in_array($route, ["login", "login-handler", "logout"], true) &&
+    !in_array(
+        $route,
+        [
+            "login",
+            "login-handler",
+            "microsoft-login",
+            "microsoft-callback",
+            "logout",
+        ],
+        true,
+    ) &&
     !isRouteAllowed($route, $userType)
 ) {
     header("Location: dashboard");
@@ -149,6 +162,8 @@ if (
 $routes = [
     "login" => "login.php",
     "login-handler" => "login-php.php",
+    "microsoft-login" => "microsoft-login.php",
+    "microsoft-callback" => "microsoft-callback.php",
     "logout" => "logout.php",
     "dashboard" => "public/Admin/dashboard.php",
     "entry" => "public/Admin/abcrv.php",
@@ -172,6 +187,7 @@ $routes = [
     "tdcRv" => "public/Admin/tdcRv.php",
     "dryVan" => "public/Admin/dryVan.php",
     "drivers" => "public/Admin/drivers.php",
+    "records" => "public/Admin/records.php",
 ];
 
 if (isLoggedIn()) {

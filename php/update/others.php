@@ -58,6 +58,7 @@ $operations = validate($_POST["operations_ph"] ?? "");
 $customer_ph = validate($_POST["customer_ph"] ?? "");
 $load_qty = validate($_POST["load_quantity_weight"] ?? "");
 $unit_of_measure = validate($_POST["unit_of_measure"] ?? "");
+$kms = validate($_POST["kms"] ?? "");
 $deliver_from = validate($_POST["deliver_from"] ?? "");
 $deliver_to = validate($_POST["deliver_to"] ?? "");
 $driver_idNumber = validate($_POST["driver_idNumber"] ?? "");
@@ -147,6 +148,7 @@ $sql = "UPDATE operations SET
     customer_ph = ?,
     load_quantity_weight = ?,
     unit_of_measure = ?,
+    kms = ?,
     deliver_from = ?,
     delivered_to = ?,
     driver = ?,
@@ -167,7 +169,7 @@ if (!$stmt) {
 }
 
 $stmt->bind_param(
-    "sssssssssssssssssssssi",
+    "ssssssssssssssssssssssi",
     $entry_type,
     $date,
     $waybill,
@@ -180,6 +182,7 @@ $stmt->bind_param(
     $customer_ph,
     $load_qty,
     $unit_of_measure,
+    $kms,
     $deliver_from,
     $deliver_to,
     $driver,
@@ -210,6 +213,7 @@ if ($stmt->execute()) {
         "customer_ph" => $customer_ph,
         "load_quantity_weight" => $load_qty,
         "unit_of_measure" => $unit_of_measure,
+        "kms" => $kms,
         "deliver_from" => $deliver_from,
         "delivered_to" => $deliver_to,
         "remarks" => $remarks,

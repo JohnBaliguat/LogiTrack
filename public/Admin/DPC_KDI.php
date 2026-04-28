@@ -44,7 +44,7 @@ $result = $stmt->get_result();
                             <a class="btn btn-outline-secondary" href="sumiRv">Sumi/Farmined RV</a>
                             <a class="btn btn-outline-secondary" href="tdcRv">TDC/Good Farmer RV</a>
                             <a class="btn btn-outline-secondary" href="others">Others</a>
-                            <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDI & OPM</a>
+                            <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDS & OPM</a>
                             <a class="btn btn-outline-secondary" href="cargoTruck">Cargo Truck</a>
                             <a class="btn btn-outline-secondary" href="dryVan">Dry Van</a>
                         </div>
@@ -54,7 +54,7 @@ $result = $stmt->get_result();
 
                 <div class="card mb-4">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>New DPC KDI & OPM Entry</h5>
+                        <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>New DPC KDS & OPM Entry</h5>
                         <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#entryForm">
                             <i class="bi bi-chevron-down"></i>
                         </button>
@@ -75,44 +75,44 @@ $result = $stmt->get_result();
                                         <ul id="activityList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="date" class="form-label">DATE</label>
-                                        <input type="text" class="form-control" id="date" name="date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                        <label for="date" class="form-label">DATE <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="date" name="date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="waybill" class="form-label">WAYBILL</label>
-                                        <input type="text" class="form-control" id="waybill" name="waybill">
+                                        <label for="waybill" class="form-label">WAYBILL <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="waybill" name="waybill" required>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" hidden>
                                         <label for="evita_farmind" class="form-label">EVITA/FARMIND</label>
                                         <input type="text" class="form-control" id="evita_farmind" name="evita_farmind">
                                     </div>
                                     <div class="col-md-6 position-relative">
-                                        <label for="driver" class="form-label">DRIVER</label>
-                                        <input type="text" class="form-control" id="driver" name="driver">
+                                        <label for="driver" class="form-label">DRIVER <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="driver" name="driver" required>
                                         <ul id="driverList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                         <input type="hidden" id="driver_idNumber" name="driver_idNumber">
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="departure" class="form-label">DEPARTURE</label>
-                                        <input type="text" class="form-control" id="departure" name="departure" data-manual-datetime="true" autocomplete="off" placeholder="M/D HHMM">
+                                        <label for="departure" class="form-label">DEPARTURE <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="departure" name="departure" data-manual-datetime="true" autocomplete="off" placeholder="M/D HHMM" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="arrival" class="form-label">ARRIVAL</label>
-                                        <input type="text" class="form-control" id="arrival" name="arrival" data-manual-datetime="true" autocomplete="off" placeholder="M/D HHMM">
+                                        <label for="arrival" class="form-label">ARRIVAL <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="arrival" name="arrival" data-manual-datetime="true" autocomplete="off" placeholder="M/D HHMM" required>
                                     </div>
                                     <div class="col-md-6 position-relative">
-                                        <label for="truck" class="form-label">TRUCK</label>
-                                        <input type="text" class="form-control" id="truck" name="truck">
+                                        <label for="truck" class="form-label">TRUCK <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="truck" name="truck" required>
                                         <ul id="truckList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                     </div>
                                     <div class="col-md-6 position-relative">
-                                        <label for="tr" class="form-label">Trailer</label>
-                                        <input type="text" class="form-control" id="tr" name="tr" autocomplete="off" placeholder="Search trailer">
+                                        <label for="tr" class="form-label">Trailer <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="tr" name="tr" autocomplete="off" placeholder="Search trailer" required>
                                         <ul id="trList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                     </div>
                                     <div class="col-md-6 position-relative">
-                                        <label for="ph" class="form-label">PH</label>
-                                        <input type="text" class="form-control" id="ph" name="ph" autocomplete="off" placeholder="Search location or PH">
+                                        <label for="ph" class="form-label">PH <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="ph" name="ph" autocomplete="off" placeholder="Search location or PH" required>
                                         <ul id="phList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                     </div>
                                     <div class="col-md-6">
@@ -168,8 +168,8 @@ $result = $stmt->get_result();
                                         <input type="text" class="form-control" id="total_load" name="total_load" readonly>
                                     </div>
                                     <div class="col-md-12">
-                                        <label for="fgtrs_no" class="form-label">FGTR's NO.</label>
-                                        <input type="text" class="form-control" id="fgtrs_no" name="fgtr_no">
+                                        <label for="fgtrs_no" class="form-label">FGTR's NO. <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="fgtrs_no" name="fgtr_no" required>
                                     </div>
                                     <div class="col-md-6" hidden>
                                         <label for="dpc_date" class="form-label">DPC DATE</label>

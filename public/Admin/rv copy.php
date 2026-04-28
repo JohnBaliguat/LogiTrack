@@ -675,6 +675,37 @@ $result = mysqli_query($conn, $query);
             return values;
         }
 
+        // Parse display date (M/D or M/D/YYYY) and display time (HHMM or H:MM) into Date
+        function parseDisplayDate(d) {
+            if (!d) return null;
+            const parts = d.trim().split('/');
+            if (parts.length < 2) return null;
+            let month = parseInt(parts[0], 10);
+            let day = parseInt(parts[1], 10);
+            let year = parts[2] ? parseInt(parts[2], 10) : (new Date()).getFullYear();
+            if (String(year).length === 2) year = 2000 + year;
+            if (isNaN(month) || isNaN(day) || isNaN(year)) return null;
+            return { year: year, month: month, day: day };
+        }
+
+        function parseDisplayTime(t) {
+            if (!t) return null;
+            let time = t.replace(':', '').trim();
+            if (!time.match(/^\d{1,4}$/)) return null;
+            time = time.padStart(4, '0');
+            const hh = parseInt(time.substring(0,2), 10);
+            const mm = parseInt(time.substring(2,4), 10);
+            if (isNaN(hh) || isNaN(mm) || hh > 23 || mm > 59) return null;
+            return { hh: hh, mm: mm };
+        }
+
+        function parseDisplayDateTime(d, t) {
+            const dateParts = parseDisplayDate(d);
+            if (!dateParts) return null;
+            const timeParts = parseDisplayTime(t) || { hh:0, mm:0 };
+            return new Date(dateParts.year, dateParts.month -1, dateParts.day, timeParts.hh, timeParts.mm, 0);
+        }
+
         function fillFormFromRow(row) {
             dataIdInput.value = row.dataset.id;
             document.getElementById('segment').value = row.dataset.segment || '';
@@ -786,6 +817,34 @@ $result = mysqli_query($conn, $query);
                 Swal.fire('Missing field', 'Waybill is required.', 'warning');
                 return;
             }
+
+            // Chronological order validations
+            function validateSequence(pairs, labelSequence) {
+                const dt = pairs.map(p => parseDisplayDateTime(values[p[0]], values[p[1]]));
+                for (let i = 0; i < dt.length - 1; i++) {
+                    if (dt[i] && dt[i+1] && dt[i].getTime() > dt[i+1].getTime()) {
+                        const lblPrev = labelSequence[i] || 'previous';
+                        const lblNext = labelSequence[i+1] || 'next';
+                        Swal.fire('Invalid sequence', `${lblNext} must be the same or after ${lblPrev}.`, 'warning');
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            if (!validateSequence([
+                ['pullout_location_arrival_date', 'pullout_location_arrival_time'],
+                ['pullout_location_departure_date', 'pullout_location_departure_time'],
+                ['ph_arrival_date', 'ph_arrival_time']
+            ], ['Pullout Location - Arrival','Pullout Location - Departure','PH Arrival'])) return;
+
+            if (!validateSequence([
+                ['loaded_van_loading_start_date', 'loaded_van_loading_start_time'],
+                ['loaded_van_loading_finish_date', 'loaded_van_loading_finish_time'],
+                ['loaded_van_delivery_departure_date', 'loaded_van_delivery_departure_time'],
+                ['loaded_van_delivery_arrival_date', 'loaded_van_delivery_arrival_time'],
+                ['end_uploading_date', 'end_uploading_time']
+            ], ['Loading Schedule Start','Loading Schedule Finish','Delivery Departure','Delivery Arrival','End of Unloading Start'])) return;
 
             const action = values.id ? 'update-rv' : 'add-rv';
             const endpoint = values.id ? 'php/update/rv.php' : 'php/insert/rv.php';

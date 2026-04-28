@@ -57,6 +57,18 @@ function master_settings_config(): array
             ],
             "default_sort" => "unit_name ASC",
         ],
+        "sku" => [
+            "table" => "sku",
+            "primary_key" => "sku_id",
+            "label" => "SKU",
+            "fields" => [
+                "sku_name" => ["label" => "SKU Name", "required" => true],
+                "sku_shipper_segment" => ["label" => "SKU Shipper Segment", "required" => false],
+                "sku_farm" => ["label" => "SKU Farm", "required" => false],
+                "sku_rountripDistance" => ["label" => "Roundtrip Distance", "required" => false],
+            ],
+            "default_sort" => "sku_name ASC",
+        ],
     ];
 }
 

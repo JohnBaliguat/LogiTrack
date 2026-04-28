@@ -1,16 +1,17 @@
-<?php 
-include "php/session-check.php"; 
+<?php
+include "php/session-check.php";
 include "php/config/config.php";
 include_once "php/helpers/entry_date_filter.php";
 
 $selectedEntryDate = getSelectedEntryDate();
-$stmt = $conn->prepare("SELECT entry_id, entry_type, status, customer_ph, delivered_to, return_location, size, waybill, date_hauled, driver, truck, tr, date_unloaded, remarks, waybill_empty, date_returned, type, delivered_remarks, kms, booking, seal FROM operations WHERE entry_type = 'DRY VAN ENTRY' AND DATE(created_date) = ? ORDER BY entry_id DESC");
+$stmt = $conn->prepare("SELECT entry_id, entry_type, status, customer_ph, delivered_to, return_location, size, van_alpha, van_number, van_name, waybill, date_hauled, driver, truck, tr, tr2, date_unloaded, remarks, waybill_empty, date_returned, driver_return, truck2, type, delivered_remarks, kms, booking, shipment_no, seal FROM operations WHERE entry_type = 'DRY VAN ENTRY' AND DATE(created_date) = ? ORDER BY entry_id DESC");
 $stmt->bind_param("s", $selectedEntryDate);
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,6 +22,7 @@ $result = $stmt->get_result();
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
+
 <body>
     <div class="wrapper">
         <?php include "sidebar.php"; ?>
@@ -43,7 +45,7 @@ $result = $stmt->get_result();
                             <a class="btn btn-outline-secondary" href="sumiRv">Sumi/Farmined RV</a>
                             <a class="btn btn-outline-secondary" href="tdcRv">TDC/Good Farmer RV</a>
                             <a class="btn btn-outline-secondary" href="others">Others</a>
-                            <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDI & OPM</a>
+                            <a class="btn btn-outline-secondary" href="DPC_KDI">DPC_KDS & OPM</a>
                             <a class="btn btn-outline-secondary" href="cargoTruck">Cargo Truck</a>
                             <a class="btn btn-outline-secondary" href="dryVan">Dry Van</a>
                         </div>
@@ -63,7 +65,7 @@ $result = $stmt->get_result();
                                     <form id="dataEntryForm">
                                         <input type="hidden" id="data_id" name="data_id" value="">
                                         <div class="row g-3">
-                                            <div class="col-md-6">
+                                            <div class="col-md-6" hidden>
                                                 <label for="status" class="form-label">Status *</label>
                                                 <select class="form-select" id="status" name="status" required>
                                                     <option value="">-- Select Status --</option>
@@ -71,44 +73,60 @@ $result = $stmt->get_result();
                                                     <option value="Empty Import / Loaded Export">Empty Import / Loaded Export</option>
                                                 </select>
                                             </div>
-                    <div class="col-md-6 position-relative">
-                        <label for="customer_ph" class="form-label">Customer (PH) *</label>
-                        <input type="text" class="form-control" id="customer_ph" name="customer_ph" required>
-                        <ul id="customerList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="ecs" class="form-label">ECS</label>
-                        <input type="text" class="form-control" id="ecs" name="ecs">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="van_alpha" class="form-label">Van Name</label>
-                        <input type="text" class="form-control" id="van_alpha" name="van_alpha">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="van_number" class="form-label">Van Number</label>
-                        <input type="text" class="form-control" id="van_number" name="van_number">
-                    </div>
-                    <div class="col-md-6 position-relative">
-                        <label for="shipper" class="form-label">Shipping Line</label>
-                        <input type="text" class="form-control" id="shipper" name="shipper" autocomplete="off">
-                        <ul id="shipperList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="eir_out" class="form-label">EIR Out</label>
-                        <input type="text" class="form-control" id="eir_out" name="eir_out">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="eir_in" class="form-label">EIR In</label>
-                        <input type="text" class="form-control" id="eir_in" name="eir_in">
-                    </div>
-                    <div class="col-md-6 position-relative">
-                        <label for="pullout_location" class="form-label">Pull Out Location</label>
-                        <input type="text" class="form-control" id="pullout_location" name="pullout_location" autocomplete="off">
-                        <ul id="pulloutLocationList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
-                    </div>
-                    <div class="col-md-6 position-relative">
-                        <label for="delivered_to" class="form-label">Delivery Location</label>
-                        <input type="text" class="form-control" id="delivered_to" name="delivered_to">
+                                            <div class="col-md-6 position-relative">
+                                                <label for="customer_ph" class="form-label">Customer (PH) *</label>
+                                                <input type="text" class="form-control" id="customer_ph" name="customer_ph" required>
+                                                <ul id="customerList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="ecs" class="form-label">ECS</label>
+                                                <input type="text" class="form-control" id="ecs" name="ecs">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="van_alpha" class="form-label">Van Alpha</label>
+                                                <input type="text" class="form-control" id="van_alpha" name="van_alpha">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="van_number" class="form-label">Van Numeric</label>
+                                                <input type="text" class="form-control" id="van_number" name="van_number">
+                                            </div>
+                                            <div class="col-md-6 position-relative">
+                                                <label for="shipper" class="form-label">Shipping Line</label>
+                                                <input type="text" class="form-control" id="shipper" name="shipper" autocomplete="off">
+                                                <ul id="shipperList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="eir_out" class="form-label">EIR Out</label>
+                                                <input type="text" class="form-control" id="eir_out" name="eir_out">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="eir_outDate" class="form-label">EIR Out Date</label>
+                                                <input type="text" class="form-control" id="eir_outDate" name="eir_outDate" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="eir_outTime" class="form-label">EIR Out Time</label>
+                                                <input type="text" class="form-control" id="eir_outTime" name="eir_outTime" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="eir_in" class="form-label">EIR In</label>
+                                                <input type="text" class="form-control" id="eir_in" name="eir_in">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="eir_inDate" class="form-label">EIR In Date</label>
+                                                <input type="text" class="form-control" id="eir_inDate" name="eir_inDate" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                            </div>
+                                            <div class="col-md-6 position-relative">
+                                                <label for="pullout_location" class="form-label">Pull Out Location</label>
+                                                <input type="text" class="form-control" id="pullout_location" name="pullout_location" autocomplete="off">
+                                                <ul id="pulloutLocationList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="pullout_date" class="form-label">Pull Out Date</label>
+                                                <input type="text" class="form-control" id="pullout_date" name="pullout_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                            </div>
+                                            <div class="col-md-6 position-relative">
+                                                <label for="delivered_to" class="form-label">Delivery Location</label>
+                                                <input type="text" class="form-control" id="delivered_to" name="delivered_to">
                                                 <ul id="deliveredToList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                             </div>
                                             <div class="col-md-6 position-relative">
@@ -121,12 +139,40 @@ $result = $stmt->get_result();
                                                 <input type="text" class="form-control" id="size" name="size">
                                             </div>
                                             <div class="col-md-6">
+                                                <label for="slp_no" class="form-label">SLPS No.</label>
+                                                <input type="text" class="form-control" id="slp_no" name="slp_no">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="destination" class="form-label">Destination</label>
+                                                <input type="text" class="form-control" id="destination" name="destination">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="gs" class="form-label">Genset No.</label>
+                                                <input type="text" class="form-control" id="gs" name="gs">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="genset_hr_meter_start" class="form-label">Hour Meter Start</label>
+                                                <input type="text" class="form-control" id="genset_hr_meter_start" name="genset_hr_meter_start">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="genset_hr_meter_end" class="form-label">Hour Meter End</label>
+                                                <input type="text" class="form-control" id="genset_hr_meter_end" name="genset_hr_meter_end">
+                                            </div>
+                                            <div class="col-md-6">
                                                 <label for="kms" class="form-label">KMS</label>
                                                 <input type="text" class="form-control" id="kms" name="kms">
                                             </div>
                                             <div class="col-md-6">
                                                 <label for="booking" class="form-label">Booking</label>
                                                 <input type="text" class="form-control" id="booking" name="booking">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="shipment_no" class="form-label">Shipment No.</label>
+                                                <input type="text" class="form-control" id="shipment_no" name="shipment_no">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="date_unloaded" class="form-label">Date of Unloading</label>
+                                                <input type="text" class="form-control" id="date_unloaded" name="date_unloaded" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
                                             </div>
                                             <div class="col-md-6">
                                                 <label for="seal" class="form-label">Seal</label>
@@ -136,10 +182,18 @@ $result = $stmt->get_result();
                                             <!-- Loaded Import / Empty Export Section -->
                                             <div id="loadedExportSection" class="col-12">
                                                 <hr class="my-3">
-                                                <h6 class="fw-bold mb-3">Loaded Import / Empty Export</h6>
+                                                <h6 class="fw-bold mb-3">LOADED</h6>
                                                 <div class="row g-3">
+                                                    <div class="col-md-6" hidden>
+                                                        <label for="segment" class="form-label">Segment - Loaded</label>
+                                                        <input type="text" class="form-control" id="segment" name="segment">
+                                                    </div>
+                                                    <div class="col-md-6" hidden>
+                                                        <label for="activity" class="form-label">Activity - Loaded</label>
+                                                        <input type="text" class="form-control" id="activity" name="activity">
+                                                    </div>
                                                     <div class="col-md-6">
-                                                        <label for="waybill" class="form-label">Trip Receipt (Waybill)</label>
+                                                        <label for="waybill" class="form-label">Waybill No. - Loaded</label>
                                                         <input type="text" class="form-control" id="waybill" name="waybill">
                                                     </div>
                                                     <div class="col-md-6">
@@ -147,24 +201,25 @@ $result = $stmt->get_result();
                                                         <input type="text" class="form-control" id="date_hauled" name="date_hauled" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
                                                     </div>
                                                     <div class="col-md-6 position-relative">
-                                                        <label for="driver" class="form-label">Driver</label>
+                                                        <label for="driver" class="form-label">Driver's Name (Loaded)</label>
                                                         <input type="text" class="form-control" id="driver" name="driver">
                                                         <ul id="driverList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                                         <input type="hidden" id="driver_idNumber" name="driver_idNumber">
                                                     </div>
                                                     <div class="col-md-6 position-relative">
-                                                        <label for="truck" class="form-label">Truck</label>
+                                                        <label for="truck" class="form-label">Prime Mover - Loaded</label>
                                                         <input type="text" class="form-control" id="truck" name="truck">
                                                         <ul id="truckList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                                     </div>
                                                     <div class="col-md-6 position-relative">
-                                                        <label for="tr" class="form-label">Trailer</label>
+                                                        <label for="tr" class="form-label">Trailer No.</label>
                                                         <input type="text" class="form-control" id="tr" name="tr">
                                                         <ul id="trList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <label for="date_unloaded" class="form-label">Date Unloaded</label>
-                                                        <input type="text" class="form-control" id="date_unloaded" name="date_unloaded" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
+                                                    <div class="col-md-6 position-relative">
+                                                        <label for="tr2" class="form-label">Trailer No. - Loaded</label>
+                                                        <input type="text" class="form-control" id="tr2" name="tr2">
+                                                        <ul id="tr2List" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                                     </div>
                                                     <div class="col-md-12">
                                                         <label for="remarks" class="form-label">Remarks</label>
@@ -176,26 +231,39 @@ $result = $stmt->get_result();
                                             <!-- Empty Import / Loaded Export Section -->
                                             <div id="emptyImportSection" class="col-12">
                                                 <hr class="my-3">
-                                                <h6 class="fw-bold mb-3">Empty Import / Loaded Export</h6>
+                                                <h6 class="fw-bold mb-3">EMPTY</h6>
                                                 <div class="row g-3">
+                                                    <div class="col-md-6" hidden>
+                                                        <label for="segment_empty" class="form-label">Segment - Empty</label>
+                                                        <input type="text" class="form-control" id="segment_empty" name="segment_empty">
+                                                    </div>
+                                                    <div class="col-md-6" hidden>
+                                                        <label for="activity_empty" class="form-label">Activity - Empty</label>
+                                                        <input type="text" class="form-control" id="activity_empty" name="activity_empty">
+                                                    </div>
                                                     <div class="col-md-6">
-                                                        <label for="waybill_empty" class="form-label">Trip Receipt (Waybill)</label>
+                                                        <label for="waybill_empty" class="form-label">Waybill No. - Empty</label>
                                                         <input type="text" class="form-control" id="waybill_empty" name="waybill_empty">
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <label for="date_returned" class="form-label">Date Returned</label>
+                                                        <label for="date_returned" class="form-label">Actual Date Returned</label>
                                                         <input type="text" class="form-control" id="date_returned" name="date_returned" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
                                                     </div>
                                                     <div class="col-md-6 position-relative">
-                                                        <label for="driver_return" class="form-label">Driver</label>
+                                                        <label for="driver_return" class="form-label">Driver's Name (Empty)</label>
                                                         <input type="text" class="form-control" id="driver_return" name="driver_return">
                                                         <ul id="driverReturnList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                                         <input type="hidden" id="driver_return_idNumber" name="driver_return_idNumber">
                                                     </div>
                                                     <div class="col-md-6 position-relative">
-                                                        <label for="truck_return" class="form-label">Truck</label>
+                                                        <label for="truck_return" class="form-label">Prime Mover - Empty</label>
                                                         <input type="text" class="form-control" id="truck_return" name="truck_return">
                                                         <ul id="truckReturnList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
+                                                    </div>
+                                                    <div class="col-md-6 position-relative">
+                                                        <label for="tr_empty" class="form-label">Trailer No. - Empty</label>
+                                                        <input type="text" class="form-control" id="tr_empty" data-storage-field="tr">
+                                                        <ul id="trEmptyList" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 220px; overflow-y: auto;"></ul>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label for="type" class="form-label">Type</label>
@@ -251,12 +319,14 @@ $result = $stmt->get_result();
                                                         <td><?php echo htmlspecialchars($row['entry_id']); ?></td>
                                                         <td><?php echo htmlspecialchars(($row['date_hauled'] ?? '') !== '' ? $row['date_hauled'] : ($row['date_returned'] ?? '')); ?></td>
                                                         <td><?php echo htmlspecialchars(($row['waybill'] ?? '') !== '' ? $row['waybill'] : ($row['waybill_empty'] ?? '')); ?></td>
-                                                        <td><?php echo htmlspecialchars(($row['tr'] ?? '') !== '' ? $row['tr'] : ($row['truck'] ?? '')); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['driver'] ?? ''); ?></td>
+                                                        <td><?php echo htmlspecialchars(trim(($row['van_alpha'] ?? '') . ' ' . ($row['van_number'] ?? '') . ' ' . ($row['van_name'] ?? ''))); ?></td>
+                                                        <td><?php echo htmlspecialchars(($row['driver'] ?? '') !== '' ? $row['driver'] : ($row['driver_return'] ?? '')); ?></td>
                                                         <td><?php echo htmlspecialchars(($row['remarks'] ?? '') !== '' ? $row['remarks'] : ($row['delivered_remarks'] ?? '')); ?></td>
                                                         <td>
-                                                            <button class="btn btn-sm btn-info edit-btn" data-id="<?php echo $row['entry_id']; ?>"><i class="bi bi-pencil"></i></button>
-                                                            <button class="btn btn-sm btn-danger delete-btn" data-id="<?php echo $row['entry_id']; ?>"><i class="bi bi-trash"></i></button>
+                                                            <div class="btn-group btn-group-sm">
+                                                                <button type="button" class="btn btn-outline-primary edit-btn" data-id="<?php echo $row['entry_id']; ?>"><i class="bi bi-pencil"></i></button>
+                                                                <button type="button" class="btn btn-outline-danger delete-btn" data-id="<?php echo $row['entry_id']; ?>"><i class="bi bi-trash"></i></button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 <?php endwhile; ?>
@@ -284,13 +354,16 @@ $result = $stmt->get_result();
         $(document).ready(function() {
             $("#entriesTable tbody tr.no-entries-row").remove();
             const entriesTable = $("#entriesTable").DataTable({
-                order: [[0, "desc"]],
+                order: [
+                    [0, "desc"]
+                ],
                 language: {
                     emptyTable: "No entries found for selected date"
                 }
             });
 
             const form = document.getElementById("dataEntryForm");
+            const formGrid = form.querySelector(".row.g-3");
             const dataIdInput = document.getElementById("data_id");
             const statusSelect = document.getElementById("status");
             const loadedExportSection = document.getElementById("loadedExportSection");
@@ -306,13 +379,22 @@ $result = $stmt->get_result();
             const shipperInput = document.getElementById("shipper");
             const shipperList = document.getElementById("shipperList");
             const eirOutInput = document.getElementById("eir_out");
+            const eirOutDateInput = document.getElementById("eir_outDate");
+            const eirOutTimeInput = document.getElementById("eir_outTime");
             const eirInInput = document.getElementById("eir_in");
+            const eirInDateInput = document.getElementById("eir_inDate");
             const pulloutLocationInput = document.getElementById("pullout_location");
             const pulloutLocationList = document.getElementById("pulloutLocationList");
+            const pulloutDateInput = document.getElementById("pullout_date");
             const deliveredToInput = document.getElementById("delivered_to");
             const deliveredToList = document.getElementById("deliveredToList");
             const returnLocationInput = document.getElementById("return_location");
             const returnLocationList = document.getElementById("returnLocationList");
+            const slpNoInput = document.getElementById("slp_no");
+            const destinationInput = document.getElementById("destination");
+            const gensetInput = document.getElementById("gs");
+            const hourMeterStartInput = document.getElementById("genset_hr_meter_start");
+            const hourMeterEndInput = document.getElementById("genset_hr_meter_end");
             const driverInput = document.getElementById("driver");
             const driverList = document.getElementById("driverList");
             const driverReturnInput = document.getElementById("driver_return");
@@ -323,8 +405,187 @@ $result = $stmt->get_result();
             const truckReturnList = document.getElementById("truckReturnList");
             const trInput = document.getElementById("tr");
             const trList = document.getElementById("trList");
+            const tr2Input = document.getElementById("tr2");
+            const tr2List = document.getElementById("tr2List");
+            const trEmptyInput = document.getElementById("tr_empty");
+            const trEmptyList = document.getElementById("trEmptyList");
+            const loadedSectionRow = loadedExportSection.querySelector(".row.g-3");
+            const emptySectionRow = emptyImportSection.querySelector(".row.g-3");
 
-            let allCustomers = [];
+            const dryVanCustomers = [
+                "CITIHARDWARE IMPORTS",
+                "CITIHARDWARE DOMESTIC",
+                "TPD DRYVAN IMPORT",
+                "TPD DRYVAN EXPORT",
+                "ECOSSENTIAL - IMPORT",
+                "NOVOCOCONUT - IMPORT",
+                "FRANKLIN BAKER - IMPORT",
+                "EYE CARGO - IMPORT",
+                "PHIL JDU - IMPORT",
+                "SOUTHERN HARVEST - IMPORT",
+                "HEADSPORT - IMPORT",
+                "AGRI EXIM - IMPORT",
+                "SOLARIS - IMPORT",
+                "ECOSSENTIAL - EXPORT",
+                "NOVOCOCONUT - EXPORT",
+                "FRANKLIN BAKER - EXPORT",
+                "EYE CARGO - EXPORT",
+                "PHIL JDU - EXPORT",
+                "SOUTHERN HARVEST - EXPORT",
+                "HEADSPORT - EXPORT",
+                "AGRI EXIM - EXPORT",
+                "SOLARIS - EXPORT"
+            ];
+            const importCustomers = new Set([
+                "CITIHARDWARE IMPORTS",
+                "TPD DRYVAN IMPORT",
+                "ECOSSENTIAL - IMPORT",
+                "NOVOCOCONUT - IMPORT",
+                "FRANKLIN BAKER - IMPORT",
+                "EYE CARGO - IMPORT",
+                "PHIL JDU - IMPORT",
+                "SOUTHERN HARVEST - IMPORT",
+                "HEADSPORT - IMPORT",
+                "AGRI EXIM - IMPORT",
+                "SOLARIS - IMPORT"
+            ]);
+            const exportCustomers = new Set([
+                "CITIHARDWARE DOMESTIC",
+                "TPD DRYVAN EXPORT",
+                "ECOSSENTIAL - EXPORT",
+                "NOVOCOCONUT - EXPORT",
+                "FRANKLIN BAKER - EXPORT",
+                "EYE CARGO - EXPORT",
+                "PHIL JDU - EXPORT",
+                "SOUTHERN HARVEST - EXPORT",
+                "HEADSPORT - EXPORT",
+                "AGRI EXIM - EXPORT",
+                "SOLARIS - EXPORT"
+            ]);
+            const importTopFields = ["van_alpha", "van_number", "shipper", "eir_out", "eir_outDate", "eir_in", "eir_inDate", "pullout_location", "delivered_to", "return_location", "date_unloaded", "shipment_no", "booking", "size"];
+            const exportTopFields = ["van_alpha", "van_number", "shipper", "size", "eir_out", "eir_outDate", "eir_in", "eir_inDate", "pullout_location", "delivered_to", "return_location"];
+            const customerConfigs = {
+                "CITIHARDWARE IMPORTS": {
+                    topFields: importTopFields,
+                    loadedFields: ["waybill", "date_hauled", "truck", "tr", "driver"],
+                    emptyFields: ["waybill_empty", "date_returned", "truck_return", "driver_return"],
+                    labels: {
+                        size: "Volume Size",
+                        date_returned: "Returned Date"
+                    }
+                },
+                "TPD DRYVAN IMPORT": {
+                    topFields: importTopFields.filter(field => field !== "shipment_no"),
+                    loadedFields: ["waybill", "date_hauled", "truck", "tr", "driver"],
+                    emptyFields: ["waybill_empty", "date_returned", "truck_return", "driver_return"],
+                    labels: {
+                        size: "Volume Size",
+                        date_returned: "Returned Date"
+                    }
+                },
+                "CITIHARDWARE DOMESTIC": {
+                    topFields: [...exportTopFields, "slp_no", "destination"],
+                    loadedFields: ["waybill", "date_hauled", "truck", "tr2", "driver"],
+                    emptyFields: ["waybill_empty", "pullout_date", "truck_return", "tr", "driver_return"],
+                    labels: {
+                        size: "Van Size - 20FT or 40FT",
+                        tr: "Trailer No.",
+                        tr2: "Trailer No."
+                    }
+                },
+                "TPD DRYVAN EXPORT": {
+                    topFields: exportTopFields,
+                    loadedFields: ["waybill", "date_hauled", "truck", "tr2", "driver"],
+                    emptyFields: ["waybill_empty", "pullout_date", "truck_return", "tr", "driver_return"],
+                    labels: {
+                        size: "Van Size - 20FT or 40FT",
+                        tr: "Trailer No.",
+                        tr2: "Trailer No."
+                    }
+                }
+            };
+            [
+                "ECOSSENTIAL - IMPORT",
+                "NOVOCOCONUT - IMPORT",
+                "FRANKLIN BAKER - IMPORT",
+                "EYE CARGO - IMPORT",
+                "PHIL JDU - IMPORT",
+                "SOUTHERN HARVEST - IMPORT",
+                "HEADSPORT - IMPORT",
+                "AGRI EXIM - IMPORT",
+                "SOLARIS - IMPORT"
+            ].forEach((customer) => {
+                customerConfigs[customer] = {
+                    topFields: [...importTopFields.filter(field => field !== "shipment_no"), "gs", "genset_hr_meter_start", "genset_hr_meter_end"],
+                    loadedFields: ["waybill", "date_hauled", "truck", "tr", "driver"],
+                    emptyFields: ["waybill_empty", "date_returned", "truck_return", "driver_return"],
+                    labels: {
+                        size: "Volume Size",
+                        date_returned: "Returned Date"
+                    }
+                };
+            });
+            [
+                "ECOSSENTIAL - EXPORT",
+                "NOVOCOCONUT - EXPORT",
+                "FRANKLIN BAKER - EXPORT",
+                "EYE CARGO - EXPORT",
+                "PHIL JDU - EXPORT",
+                "SOUTHERN HARVEST - EXPORT",
+                "HEADSPORT - EXPORT",
+                "AGRI EXIM - EXPORT",
+                "SOLARIS - EXPORT"
+            ].forEach((customer) => {
+                customerConfigs[customer] = {
+                    topFields: exportTopFields,
+                    loadedFields: ["waybill", "date_hauled", "truck", "tr2", "driver"],
+                    emptyFields: ["waybill_empty", "pullout_date", "truck_return", "tr", "driver_return"],
+                    labels: {
+                        size: "Van Size - 20FT or 40FT",
+                        tr: "Trailer No.",
+                        tr2: "Trailer No."
+                    }
+                };
+            });
+            const controlledDryVanFields = ["ecs", "van_alpha", "van_number", "shipper", "size", "slp_no", "destination", "eir_out", "eir_outDate", "eir_outTime", "eir_in", "eir_inDate", "pullout_location", "delivered_to", "return_location", "gs", "genset_hr_meter_start", "genset_hr_meter_end", "date_unloaded", "shipment_no", "booking", "kms", "seal", "waybill", "date_hauled", "truck", "tr", "tr2", "tr_empty", "driver", "waybill_empty", "pullout_date", "date_returned", "truck_return", "driver_return", "departure_time", "arrival_time", "remarks", "type", "delivered_remarks"];
+            const defaultLabels = {
+                van_alpha: "Van Alpha",
+                van_number: "Van Numeric",
+                shipper: "Shipping Line",
+                pullout_location: "Pull Out Location",
+                pullout_date: "Pull Out Date",
+                eir_out: "EIR Out",
+                eir_outDate: "EIR Out Date",
+                eir_inDate: "EIR In Date",
+                date_unloaded: "Date of Unloading",
+                shipment_no: "Shipment No.",
+                booking: "BL No.",
+                size: "Van Size - 20FT or 40FT",
+                slp_no: "SLPS No.",
+                destination: "Destination",
+                delivered_to: "Delivery Location",
+                return_location: "Return Location",
+                gs: "Genset No.",
+                genset_hr_meter_start: "Hour Meter Start",
+                genset_hr_meter_end: "Hour Meter End",
+                tr: "Trailer No.",
+                tr2: "Trailer No. - Loaded",
+                truck: "Prime Mover - Loaded",
+                truck_return: "Prime Mover - Empty",
+                driver: "Driver's Name (Loaded)",
+                driver_return: "Driver's Name (Empty)",
+                segment: "Segment - Loaded",
+                activity: "Activity - Loaded",
+                segment_empty: "Segment - Empty",
+                activity_empty: "Activity - Empty",
+                waybill: "Waybill No.",
+                waybill_empty: "Waybill No.",
+                date_hauled: "Date Hauled",
+                date_returned: "Returned Date",
+                eir_in: "EIR In"
+            };
+
+            let allLocations = [];
             let allShippers = [];
             let allDrivers = [];
             let allTrucks = [];
@@ -333,28 +594,48 @@ $result = $stmt->get_result();
             // Fetch lookup data
             fetch("php/fetch/get_locations.php")
                 .then(res => res.json())
-                .then(data => { allCustomers = Array.isArray(data) ? data : []; })
-                .catch(() => { allCustomers = []; });
+                .then(data => {
+                    allLocations = Array.isArray(data) ? data : [];
+                })
+                .catch(() => {
+                    allLocations = [];
+                });
 
             fetch("php/fetch/get_shippers.php")
                 .then(res => res.json())
-                .then(data => { allShippers = Array.isArray(data) ? data : []; })
-                .catch(() => { allShippers = []; });
+                .then(data => {
+                    allShippers = Array.isArray(data) ? data : [];
+                })
+                .catch(() => {
+                    allShippers = [];
+                });
 
             fetch("php/fetch/get_drivers.php")
                 .then(res => res.json())
-                .then(data => { allDrivers = Array.isArray(data) ? data : []; })
-                .catch(() => { allDrivers = []; });
+                .then(data => {
+                    allDrivers = Array.isArray(data) ? data : [];
+                })
+                .catch(() => {
+                    allDrivers = [];
+                });
 
             fetch("php/fetch/get_trucks.php")
                 .then(res => res.json())
-                .then(data => { allTrucks = Array.isArray(data) ? data : []; })
-                .catch(() => { allTrucks = []; });
+                .then(data => {
+                    allTrucks = Array.isArray(data) ? data : [];
+                })
+                .catch(() => {
+                    allTrucks = [];
+                });
 
             fetch("php/fetch/get_trailers.php")
                 .then(res => res.json())
-                .then(data => { allTrailers = Array.isArray(data) ? data : []; })
-                .catch(() => { allTrailers = []; });
+                .then(data => {
+                    allTrailers = Array.isArray(data) ? data : [];
+                })
+                .catch(() => {
+                    allTrailers = [];
+                });
 
             // Helper function to hide dropdown
             function hideDropdown(listElem) {
@@ -378,21 +659,21 @@ $result = $stmt->get_result();
             function filterAndDisplay(input, listElem, dataArray, getDisplay, onSelect) {
                 const searchVal = input.value.trim().toLowerCase();
                 listElem.innerHTML = "";
-                
+
                 if (!searchVal) {
                     hideDropdown(listElem);
                     return;
                 }
-                
-                const filtered = dataArray.filter(item => 
+
+                const filtered = dataArray.filter(item =>
                     (getDisplay(item) || "").toLowerCase().includes(searchVal)
                 );
-                
+
                 if (filtered.length === 0) {
                     hideDropdown(listElem);
                     return;
                 }
-                
+
                 filtered.forEach((item, index) => {
                     const li = document.createElement("li");
                     li.className = "list-group-item list-group-item-action";
@@ -407,7 +688,7 @@ $result = $stmt->get_result();
                     });
                     listElem.appendChild(li);
                 });
-                
+
                 showDropdown(listElem);
             }
 
@@ -462,44 +743,58 @@ $result = $stmt->get_result();
                     items.forEach(item => item.classList.remove("active-suggestion"));
                     if (items[index]) {
                         items[index].classList.add("active-suggestion");
-                        items[index].scrollIntoView({ block: "nearest" });
+                        items[index].scrollIntoView({
+                            block: "nearest"
+                        });
                     }
                 }
             }
 
             // Customer PH
             customerPhInput.addEventListener("input", function() {
-                filterAndDisplay(this, customerList, allCustomers, 
-                    loc => loc.location_name || "",
-                    item => { customerPhInput.value = item.location_name; }
+                filterAndDisplay(this, customerList, dryVanCustomers,
+                    customer => customer || "",
+                    item => {
+                        customerPhInput.value = item || "";
+                        applyCustomerFormRules();
+                    }
                 );
+                applyCustomerFormRules();
             });
 
             deliveredToInput.addEventListener("input", function() {
-                filterAndDisplay(this, deliveredToList, allCustomers,
+                filterAndDisplay(this, deliveredToList, allLocations,
                     loc => loc.location_name || "",
-                    item => { deliveredToInput.value = item.location_name; }
+                    item => {
+                        deliveredToInput.value = item.location_name;
+                    }
                 );
             });
 
             pulloutLocationInput.addEventListener("input", function() {
-                filterAndDisplay(this, pulloutLocationList, allCustomers,
+                filterAndDisplay(this, pulloutLocationList, allLocations,
                     loc => loc.location_name || "",
-                    item => { pulloutLocationInput.value = item.location_name; }
+                    item => {
+                        pulloutLocationInput.value = item.location_name;
+                    }
                 );
             });
 
             returnLocationInput.addEventListener("input", function() {
-                filterAndDisplay(this, returnLocationList, allCustomers,
+                filterAndDisplay(this, returnLocationList, allLocations,
                     loc => loc.location_name || "",
-                    item => { returnLocationInput.value = item.location_name; }
+                    item => {
+                        returnLocationInput.value = item.location_name;
+                    }
                 );
             });
 
             shipperInput.addEventListener("input", function() {
                 filterAndDisplay(this, shipperList, allShippers,
                     shipper => shipper.shipper || "",
-                    item => { shipperInput.value = item.shipper || ""; }
+                    item => {
+                        shipperInput.value = item.shipper || "";
+                    }
                 );
             });
 
@@ -531,7 +826,9 @@ $result = $stmt->get_result();
             truckInput.addEventListener("input", function() {
                 filterAndDisplay(this, truckList, allTrucks,
                     trk => trk || "",
-                    item => { truckInput.value = item || ""; }
+                    item => {
+                        truckInput.value = item || "";
+                    }
                 );
             });
 
@@ -539,7 +836,9 @@ $result = $stmt->get_result();
             truckReturnInput.addEventListener("input", function() {
                 filterAndDisplay(this, truckReturnList, allTrucks,
                     trk => trk || "",
-                    item => { truckReturnInput.value = item || ""; }
+                    item => {
+                        truckReturnInput.value = item || "";
+                    }
                 );
             });
 
@@ -547,19 +846,40 @@ $result = $stmt->get_result();
             trInput.addEventListener("input", function() {
                 filterAndDisplay(this, trList, allTrailers,
                     trl => trl.trailer_name || "",
-                    item => { trInput.value = item.trailer_name; }
+                    item => {
+                        trInput.value = item.trailer_name;
+                    }
+                );
+            });
+
+            tr2Input.addEventListener("input", function() {
+                filterAndDisplay(this, tr2List, allTrailers,
+                    trl => trl.trailer_name || "",
+                    item => {
+                        tr2Input.value = item.trailer_name;
+                    }
+                );
+            });
+
+            trEmptyInput.addEventListener("input", function() {
+                filterAndDisplay(this, trEmptyList, allTrailers,
+                    trl => trl.trailer_name || "",
+                    item => {
+                        trEmptyInput.value = item.trailer_name;
+                    }
                 );
             });
 
             // Close dropdowns when clicking outside
             document.addEventListener("mousedown", function(event) {
                 if (!event.target.closest(".position-relative")) {
-                    [customerList, deliveredToList, returnLocationList, driverList, driverReturnList, truckList, truckReturnList, trList].forEach(hideDropdown);
+                    [customerList, deliveredToList, pulloutLocationList, returnLocationList, shipperList, driverList, driverReturnList, truckList, truckReturnList, trList, tr2List, trEmptyList].forEach(hideDropdown);
                 }
             });
 
             attachKeyboardNav(customerPhInput, customerList, (value) => {
                 customerPhInput.value = value;
+                applyCustomerFormRules();
             });
 
             attachKeyboardNav(deliveredToInput, deliveredToList, (value) => {
@@ -602,6 +922,120 @@ $result = $stmt->get_result();
                 trInput.value = value;
             });
 
+            attachKeyboardNav(tr2Input, tr2List, (value) => {
+                tr2Input.value = value;
+            });
+
+            attachKeyboardNav(trEmptyInput, trEmptyList, (value) => {
+                trEmptyInput.value = value;
+            });
+
+            function getFieldContainer(fieldName) {
+                const input = form.elements[fieldName] || document.getElementById(fieldName);
+                if (!input) return null;
+                return input.closest(".col-md-6, .col-md-12, .col-12");
+            }
+
+            function setFieldVisible(fieldName, visible) {
+                const container = getFieldContainer(fieldName);
+                if (!container) return;
+                container.hidden = !visible;
+                const input = form.elements[fieldName] || document.getElementById(fieldName);
+                if (input) {
+                    input.disabled = !visible;
+                    input.required = visible;
+                }
+            }
+
+            function setFieldLabel(fieldName, text) {
+                const input = form.elements[fieldName] || document.getElementById(fieldName);
+                if (!input) return;
+                const label = form.querySelector(`label[for="${fieldName}"]`);
+                if (label) {
+                    label.textContent = text;
+                }
+            }
+
+            function updateStatusFromCustomer(customer) {
+                if (importCustomers.has(customer)) {
+                    statusSelect.value = "Loaded Import / Empty Export";
+                } else if (exportCustomers.has(customer)) {
+                    statusSelect.value = "Empty Import / Loaded Export";
+                }
+            }
+
+            function applyCustomerFormRules() {
+                const customer = customerPhInput.value.trim().toUpperCase();
+                const config = customerConfigs[customer] || {
+                    topFields: [],
+                    loadedFields: [],
+                    emptyFields: [],
+                    labels: {}
+                };
+                const topFields = config.topFields || [];
+                const loadedFields = new Set(config.loadedFields || []);
+                const emptyFields = new Set(config.emptyFields || []);
+
+                updateStatusFromCustomer(customer);
+                Object.entries(defaultLabels).forEach(([fieldName, labelText]) => {
+                    setFieldLabel(fieldName, (config.labels && config.labels[fieldName]) || labelText);
+                });
+
+                if (exportCustomers.has(customer)) {
+                    formGrid.insertBefore(emptyImportSection, loadedExportSection);
+                } else {
+                    formGrid.insertBefore(loadedExportSection, emptyImportSection);
+                }
+
+                controlledDryVanFields.forEach(fieldName => {
+                    setFieldVisible(fieldName, false);
+                });
+
+                loadedExportSection.hidden = loadedFields.size === 0;
+                emptyImportSection.hidden = emptyFields.size === 0;
+
+                topFields.forEach((fieldName) => {
+                    const container = getFieldContainer(fieldName);
+                    if (container) {
+                        formGrid.insertBefore(container, exportCustomers.has(customer) ? emptyImportSection : loadedExportSection);
+                    }
+                    setFieldVisible(fieldName, true);
+                });
+
+                ["waybill", "date_hauled", "driver", "truck", "tr", "tr2"].forEach((fieldName) => {
+                    const sectionVisible = loadedFields.has(fieldName);
+                    const container = getFieldContainer(fieldName);
+                    if (container) {
+                        loadedSectionRow.appendChild(container);
+                    }
+                    setFieldVisible(fieldName, sectionVisible);
+                });
+
+                ["waybill_empty", "pullout_date", "date_returned", "driver_return", "truck_return", "tr"].forEach((fieldName) => {
+                    const sectionVisible = emptyFields.has(fieldName);
+                    if (fieldName !== "tr") {
+                        const container = getFieldContainer(fieldName);
+                        if (container) {
+                            emptySectionRow.appendChild(container);
+                        }
+                        setFieldVisible(fieldName, sectionVisible);
+                    }
+                });
+
+                setFieldVisible("tr_empty", emptyFields.has("tr"));
+                setFieldVisible("tr", loadedFields.has("tr"));
+                const emptyWaybillContainer = getFieldContainer("waybill_empty");
+                if (emptyWaybillContainer) {
+                    emptySectionRow.insertBefore(emptyWaybillContainer, emptySectionRow.firstChild);
+                }
+                if (emptyFields.has("tr")) {
+                    trEmptyInput.value = trInput.value;
+                }
+                if (loadedFields.has("tr")) {
+                    trInput.value = trEmptyInput.value || trInput.value;
+                }
+            }
+
             function convertDateToDatabase(displayDate) {
                 if (!displayDate || displayDate === "") return "";
 
@@ -621,6 +1055,23 @@ $result = $stmt->get_result();
                 return `${year}-${month}-${day}`;
             }
 
+            function convertTimeToDatabase(displayTime) {
+                if (!displayTime || displayTime === "") return "";
+
+                const value = displayTime.trim();
+                if (/^\d{2}:\d{2}(:\d{2})?$/.test(value)) {
+                    return value.length === 5 ? `${value}:00` : value;
+                }
+
+                const compact = value.replace(/[^0-9]/g, "");
+                if (compact.length === 3 || compact.length === 4) {
+                    const padded = compact.padStart(4, "0");
+                    return `${padded.slice(0, 2)}:${padded.slice(2, 4)}:00`;
+                }
+
+                return displayTime;
+            }
+
             function escapeHtml(value) {
                 return $("<div>").text(value ?? "").html();
             }
@@ -633,6 +1084,15 @@ $result = $stmt->get_result();
                 if (!match) return dbDate;
 
                 return `${match[2]}/${match[3]}/${match[1]}`;
+            }
+
+            function formatTimeForDisplay(dbTime) {
+                if (!dbTime || dbTime === "") return "";
+
+                const match = String(dbTime).match(/^(\d{2}):(\d{2})/);
+                if (!match) return dbTime;
+
+                return `${match[1]}:${match[2]}`;
             }
 
             function normalizeManualDateInput(displayDate) {
@@ -665,7 +1125,7 @@ $result = $stmt->get_result();
             function buildEntryRowData(record) {
                 const displayDate = record.date_hauled || record.date_returned || "";
                 const displayWaybill = record.waybill || record.waybill_empty || "";
-                const displayVan = record.tr || record.truck || record.truck2 || "";
+                const displayVan = `${record.van_alpha || ""} ${record.van_number || ""} ${record.van_name || ""}`.trim();
                 const displayDriver = record.driver || record.driver_return || "";
                 const displayRemarks = record.remarks || record.delivered_remarks || "";
                 const entryId = escapeHtml(record.entry_id || "");
@@ -677,8 +1137,10 @@ $result = $stmt->get_result();
                     escapeHtml(displayVan),
                     escapeHtml(displayDriver),
                     escapeHtml(displayRemarks),
-                    `<button class="btn btn-sm btn-info edit-btn" data-id="${entryId}"><i class="bi bi-pencil"></i></button>
-                    <button class="btn btn-sm btn-danger delete-btn" data-id="${entryId}"><i class="bi bi-trash"></i></button>`
+                    `<div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-primary edit-btn" data-id="${entryId}"><i class="bi bi-pencil"></i></button>
+                        <button type="button" class="btn btn-outline-danger delete-btn" data-id="${entryId}"><i class="bi bi-trash"></i></button>
+                    </div>`
                 ];
             }
 
@@ -715,10 +1177,28 @@ $result = $stmt->get_result();
                 });
             });
 
+            document.querySelectorAll("[data-manual-time='true']").forEach((input) => {
+                input.addEventListener("blur", function() {
+                    const converted = convertTimeToDatabase(this.value);
+                    this.value = formatTimeForDisplay(converted);
+                });
+            });
+
+            form.addEventListener("reset", function() {
+                window.setTimeout(() => {
+                    dataIdInput.value = "";
+                    document.getElementById("driver_idNumber").value = "";
+                    document.getElementById("driver_return_idNumber").value = "";
+                    applyCustomerFormRules();
+                }, 0);
+            });
+
+            applyCustomerFormRules();
+
             // Form submission
             form.addEventListener("submit", function(e) {
                 e.preventDefault();
-                
+
                 // Validate status is selected
                 if (!statusSelect.value) {
                     Swal.fire("Error!", "Please select a status.", "error");
@@ -726,34 +1206,41 @@ $result = $stmt->get_result();
                 }
 
                 const formData = new FormData(form);
-                ["date_hauled", "date_unloaded", "date_returned"].forEach((field) => {
+                if (!trEmptyInput.disabled) {
+                    formData.set("tr", trEmptyInput.value);
+                }
+
+                ["date_hauled", "date_unloaded", "date_returned", "eir_outDate", "eir_inDate", "pullout_date"].forEach((field) => {
                     const currentValue = formData.get(field);
                     if (typeof currentValue === "string" && currentValue !== "") {
                         formData.set(field, convertDateToDatabase(currentValue));
+                    }
+                });
+                ["eir_outTime", "departure_time", "arrival_time"].forEach((field) => {
+                    const currentValue = formData.get(field);
+                    if (typeof currentValue === "string" && currentValue !== "") {
+                        formData.set(field, convertTimeToDatabase(currentValue));
                     }
                 });
                 const isUpdate = Boolean(dataIdInput.value);
                 formData.append("action", isUpdate ? "update-dry-van" : "add-dry-van");
 
                 fetch(isUpdate ? "php/update/dry_van.php" : "php/insert/dry_van.php", {
-                    method: "POST",
-                    body: formData
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        upsertTableRow(data.record || {});
-                        Swal.fire("Success!", data.message, "success").then(() => {
-                            form.reset();
-                            dataIdInput.value = "";
-                            document.getElementById("driver_idNumber").value = "";
-                            document.getElementById("driver_return_idNumber").value = "";
-                        });
-                    } else {
-                        Swal.fire("Error!", data.message, "error");
-                    }
-                })
-                .catch(err => Swal.fire("Error!", "An error occurred while saving.", "error"));
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            upsertTableRow(data.record || {});
+                            Swal.fire("Success!", data.message, "success").then(() => {
+                                form.reset();
+                            });
+                        } else {
+                            Swal.fire("Error!", data.message, "error");
+                        }
+                    })
+                    .catch(err => Swal.fire("Error!", "An error occurred while saving.", "error"));
             });
 
             // Edit button
@@ -771,25 +1258,52 @@ $result = $stmt->get_result();
                             vanNumberInput.value = record.van_number || "";
                             shipperInput.value = record.shipper || "";
                             eirOutInput.value = record.eir_out || "";
+                            eirOutDateInput.value = formatDateForDisplay(record.eir_outDate || "");
+                            eirOutTimeInput.value = formatTimeForDisplay(record.eir_outTime || "");
                             eirInInput.value = record.eir_in || "";
+                            eirInDateInput.value = formatDateForDisplay(record.eir_inDate || "");
                             pulloutLocationInput.value = record.pullout_location || "";
+                            pulloutDateInput.value = formatDateForDisplay(record.pullout_date || "");
                             document.getElementById("delivered_to").value = record.delivered_to || "";
                             document.getElementById("return_location").value = record.return_location || "";
                             document.getElementById("size").value = record.size || "";
+                            slpNoInput.value = record.slp_no || "";
+                            destinationInput.value = record.destination || "";
+                            gensetInput.value = record.gs || "";
+                            hourMeterStartInput.value = record.genset_hr_meter_start || "";
+                            hourMeterEndInput.value = record.genset_hr_meter_end || "";
                             document.getElementById("kms").value = record.kms || "";
                             document.getElementById("booking").value = record.booking || "";
+                            document.getElementById("shipment_no").value = record.shipment_no || "";
                             document.getElementById("seal").value = record.seal || "";
 
                             // Load both sections with data
+                            document.getElementById("segment").value = record.segment || "";
+                            document.getElementById("activity").value = record.activity || "";
                             document.getElementById("waybill").value = record.waybill || "";
                             document.getElementById("date_hauled").value = formatDateForDisplay(record.date_hauled || "");
                             driverInput.value = record.driver || "";
                             document.getElementById("driver_idNumber").value = record.driver_idNumber || "";
                             truckInput.value = record.truck || "";
                             trInput.value = record.tr || "";
+                            trEmptyInput.value = record.tr || "";
+                            tr2Input.value = record.tr2 || "";
                             document.getElementById("date_unloaded").value = formatDateForDisplay(record.date_unloaded || "");
-                            document.getElementById("remarks").value = record.remarks || "";
+                            const departureTimeInput = document.getElementById("departure_time");
+                            if (departureTimeInput) {
+                                departureTimeInput.value = formatTimeForDisplay(record.departure_time || "");
+                            }
+                            const arrivalTimeInput = document.getElementById("arrival_time");
+                            if (arrivalTimeInput) {
+                                arrivalTimeInput.value = formatTimeForDisplay(record.arrival_time || "");
+                            }
+                            const remarksInput = document.getElementById("remarks");
+                            if (remarksInput) {
+                                remarksInput.value = record.remarks || "";
+                            }
 
+                            document.getElementById("segment_empty").value = record.segment_empty || "";
+                            document.getElementById("activity_empty").value = record.activity_empty || "";
                             document.getElementById("waybill_empty").value = record.waybill_empty || "";
                             document.getElementById("date_returned").value = formatDateForDisplay(record.date_returned || "");
                             driverReturnInput.value = record.driver_return || "";
@@ -797,6 +1311,7 @@ $result = $stmt->get_result();
                             truckReturnInput.value = record.truck2 || "";
                             document.getElementById("type").value = record.type || "";
                             document.getElementById("delivered_remarks").value = record.delivered_remarks || "";
+                            applyCustomerFormRules();
 
                             document.querySelector('[data-bs-target="#entryForm"]').click();
                         }
@@ -815,23 +1330,26 @@ $result = $stmt->get_result();
                 }).then(result => {
                     if (result.isConfirmed) {
                         fetch("php/delete/dry_van.php", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                            body: "entry_id=" + id
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                removeTableRow(id);
-                                Swal.fire("Deleted!", "", "success").then(() => {
-                                    dataIdInput.value = "";
-                                });
-                            }
-                        });
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/x-www-form-urlencoded"
+                                },
+                                body: "entry_id=" + id
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    removeTableRow(id);
+                                    Swal.fire("Deleted!", "", "success").then(() => {
+                                        dataIdInput.value = "";
+                                    });
+                                }
+                            });
                     }
                 });
             });
         });
     </script>
 </body>
+
 </html>

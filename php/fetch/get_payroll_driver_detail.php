@@ -3,6 +3,121 @@ include "../config/config.php";
 
 header("Content-Type: application/json; charset=utf-8");
 
+function payroll_normalize_text($value): string
+{
+    return trim((string) $value);
+}
+
+function payroll_normalize_driver_name($value): string
+{
+    $value = payroll_normalize_text($value);
+    return $value === '' ? 'No Driver' : $value;
+}
+
+function payroll_normalize_driver_id($value): string
+{
+    $value = payroll_normalize_text($value);
+    return $value === '' ? '-' : $value;
+}
+
+function payroll_normalize_amount($value): float
+{
+    $value = payroll_normalize_text($value);
+    return $value === '' ? 0.0 : (float) $value;
+}
+
+function payroll_same_driver(array $row, string $secondaryNameField, string $secondaryIdField): bool
+{
+    $primaryName = payroll_normalize_text($row['driver'] ?? '');
+    $primaryId = payroll_normalize_text($row['driver_idNumber'] ?? '');
+    $secondaryName = payroll_normalize_text($row[$secondaryNameField] ?? '');
+    $secondaryId = payroll_normalize_text($row[$secondaryIdField] ?? '');
+
+    if ($primaryName === '' || $secondaryName === '') {
+        return true;
+    }
+
+    if ($primaryId !== '' && $secondaryId !== '') {
+        return $primaryId === $secondaryId;
+    }
+
+    return strcasecmp($primaryName, $secondaryName) === 0;
+}
+
+function payroll_expand_operation(array $row): array
+{
+    $segment = payroll_normalize_text($row['segment'] ?? '');
+    $pieceRate = payroll_normalize_amount($row['piece_rate'] ?? '');
+    $pieceRateEmpty = payroll_normalize_amount($row['piece_rate_empty'] ?? '');
+    $pieceRateLoaded = payroll_normalize_amount($row['piece_rate_loaded'] ?? '');
+    $entryType = payroll_normalize_text($row['entry_type'] ?? '');
+
+    if ($entryType === 'RV ENTRY') {
+        if (!payroll_same_driver($row, 'delivered_by_driver', 'delivered_by_driverIdNumber')) {
+            $entries = [];
+
+            if ($pieceRateEmpty > 0) {
+                $entries[] = [
+                    'driver_name' => payroll_normalize_driver_name($row['driver'] ?? ''),
+                    'driver_id' => payroll_normalize_driver_id($row['driver_idNumber'] ?? ''),
+                    'segment' => $segment,
+                    'amount' => $pieceRateEmpty,
+                ];
+            }
+
+            if ($pieceRateLoaded > 0) {
+                $entries[] = [
+                    'driver_name' => payroll_normalize_driver_name($row['delivered_by_driver'] ?? ''),
+                    'driver_id' => payroll_normalize_driver_id($row['delivered_by_driverIdNumber'] ?? ''),
+                    'segment' => $segment,
+                    'amount' => $pieceRateLoaded,
+                ];
+            }
+
+            return $entries;
+        }
+    }
+
+    if ($entryType === 'DRY VAN ENTRY') {
+        if (!payroll_same_driver($row, 'driver_return', 'driver_return_idNumber')) {
+            $entries = [];
+
+            if ($pieceRateEmpty > 0) {
+                $entries[] = [
+                    'driver_name' => payroll_normalize_driver_name($row['driver_return'] ?? ''),
+                    'driver_id' => payroll_normalize_driver_id($row['driver_return_idNumber'] ?? ''),
+                    'segment' => $segment,
+                    'amount' => $pieceRateEmpty,
+                ];
+            }
+
+            if ($pieceRateLoaded > 0) {
+                $entries[] = [
+                    'driver_name' => payroll_normalize_driver_name($row['driver'] ?? ''),
+                    'driver_id' => payroll_normalize_driver_id($row['driver_idNumber'] ?? ''),
+                    'segment' => $segment,
+                    'amount' => $pieceRateLoaded,
+                ];
+            }
+
+            if (!empty($entries)) {
+                return $entries;
+            }
+        }
+    }
+
+    if ($pieceRate <= 0) {
+        return [];
+    }
+
+    return [[
+        'driver_name' => payroll_normalize_driver_name($row['driver'] ?? ''),
+        'driver_id' => payroll_normalize_driver_id($row['driver_idNumber'] ?? ''),
+        'segment' => $segment,
+        'amount' => $pieceRate,
+    ]];
+}
+
 $dateFrom = trim((string) ($_GET["date_from"] ?? ""));
 $dateTo = trim((string) ($_GET["date_to"] ?? ""));
 $driverName = trim((string) ($_GET["driver_name"] ?? ""));
@@ -48,15 +163,19 @@ if ($segmentResult) {
 
 $sql = "SELECT
     DATE(created_date) AS work_date,
+    entry_type,
     segment,
-    SUM(CAST(COALESCE(NULLIF(piece_rate, ''), '0') AS DECIMAL(12,2))) AS total_piece_rate
+    driver,
+    driver_idNumber,
+    delivered_by_driver,
+    delivered_by_driverIdNumber,
+    driver_return,
+    driver_return_idNumber,
+    piece_rate,
+    piece_rate_empty,
+    piece_rate_loaded
 FROM operations
-WHERE DATE(created_date) BETWEEN ? AND ?
-  AND COALESCE(NULLIF(TRIM(driver), ''), 'No Driver') = ?
-  AND (? = '' OR COALESCE(NULLIF(TRIM(driver_idNumber), ''), '-') = ?)
-  AND COALESCE(NULLIF(TRIM(piece_rate), ''), '0') <> '0'
-GROUP BY DATE(created_date), segment
-ORDER BY work_date ASC, segment ASC";
+WHERE DATE(created_date) BETWEEN ? AND ?";
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
@@ -67,14 +186,7 @@ if (!$stmt) {
     exit();
 }
 
-$stmt->bind_param(
-    "sssss",
-    $dateFrom,
-    $dateTo,
-    $driverName,
-    $driverId,
-    $driverId,
-);
+$stmt->bind_param("ss", $dateFrom, $dateTo);
 if (!$stmt->execute()) {
     echo json_encode([
         "success" => false,
@@ -89,11 +201,26 @@ $valueMap = [];
 
 while ($row = $result->fetch_assoc()) {
     $workDate = $row["work_date"];
-    $segment = trim((string) $row["segment"]);
-    $valueMap[$workDate][$segment] = (float) ($row["total_piece_rate"] ?? 0);
 
-    if ($segment !== "" && !in_array($segment, $segments, true)) {
-        $segments[] = $segment;
+    foreach (payroll_expand_operation($row) as $entry) {
+        if (($entry['amount'] ?? 0) <= 0) {
+            continue;
+        }
+
+        if ($entry['driver_name'] !== $driverName) {
+            continue;
+        }
+
+        if ($driverId !== '' && $entry['driver_id'] !== $driverId) {
+            continue;
+        }
+
+        $segment = trim((string) $entry["segment"]);
+        $valueMap[$workDate][$segment] = ($valueMap[$workDate][$segment] ?? 0) + (float) $entry["amount"];
+
+        if ($segment !== "" && !in_array($segment, $segments, true)) {
+            $segments[] = $segment;
+        }
     }
 }
 

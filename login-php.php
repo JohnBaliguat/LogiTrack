@@ -1,6 +1,7 @@
 <?php
 session_start();
 include "php/config/config.php";
+require_once "php/helpers/auth.php";
 
 if (isset($_POST["login-btn"])) {
     function validate($data)
@@ -41,12 +42,7 @@ if (isset($_POST["login-btn"])) {
             }
 
             if (password_verify($pass, $hashedPassword)) {
-                $_SESSION["user_id"] = $row["user_id"];
-                $_SESSION["user_idNumber"] = $row["user_idNumber"];
-                $_SESSION["user_type"] = $row["user_type"];
-                $_SESSION["user_name"] = $row["user_name"];
-                $_SESSION["user_email"] = $row["user_email"];
-                $_SESSION["user_image"] = $row["user_image"];
+                setUserSession($row);
 
                 header("Location: dashboard");
                 exit();

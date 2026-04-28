@@ -51,6 +51,7 @@ $operations = validate($_POST["operations_ph"] ?? "");
 $customer_ph = validate($_POST["customer_ph"] ?? "");
 $load_qty = validate($_POST["load_quantity_weight"] ?? "");
 $unit_of_measure = validate($_POST["unit_of_measure"] ?? "");
+$kms = validate($_POST["kms"] ?? "");
 $deliver_from = validate($_POST["deliver_from"] ?? "");
 $deliver_to = validate($_POST["deliver_to"] ?? "");
 $driver_idNumber = validate($_POST["driver_idNumber"] ?? "");
@@ -128,9 +129,9 @@ if (
 $sql = "INSERT INTO operations (
     entry_type,
     waybill_date, waybill, segment, activity, truck, tr, gs, operations_ph, customer_ph, load_quantity_weight,
-    unit_of_measure, deliver_from, delivered_to, driver, driver_idNumber, remarks, piece_rate, billing_sku, created_by, created_date
+    unit_of_measure, kms, deliver_from, delivered_to, driver, driver_idNumber, remarks, piece_rate, billing_sku, created_by, created_date
 ) VALUES (
-    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
+    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
 )";
 
 $stmt = $conn->prepare($sql);
@@ -144,7 +145,7 @@ if (!$stmt) {
 $entry_type = "OTHERS ENTRY";
 
 $stmt->bind_param(
-    "sssssssssssssssssssss",
+    "ssssssssssssssssssssss",
     $entry_type,
     $date,
     $waybill,
@@ -157,6 +158,7 @@ $stmt->bind_param(
     $customer_ph,
     $load_qty,
     $unit_of_measure,
+    $kms,
     $deliver_from,
     $deliver_to,
     $driver,
@@ -186,6 +188,7 @@ if ($stmt->execute()) {
         "customer_ph" => $customer_ph,
         "load_quantity_weight" => $load_qty,
         "unit_of_measure" => $unit_of_measure,
+        "kms" => $kms,
         "deliver_from" => $deliver_from,
         "delivered_to" => $deliver_to,
         "remarks" => $remarks,

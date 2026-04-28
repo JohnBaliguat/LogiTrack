@@ -52,6 +52,7 @@ $stats = dashboard_query_assoc(
         SUM(CASE WHEN DATE(created_date) = CURDATE() AND entry_type = 'RV ENTRY' THEN 1 ELSE 0 END) AS today_rv,
         SUM(CASE WHEN DATE(created_date) = CURDATE() AND entry_type = 'OTHERS ENTRY' THEN 1 ELSE 0 END) AS today_others,
         SUM(CASE WHEN DATE(created_date) = CURDATE() AND entry_type = 'DPC_KDs & OPM ENTRY' THEN 1 ELSE 0 END) AS today_dpc,
+        SUM(CASE WHEN DATE(created_date) = CURDATE() AND entry_type = 'DRY VAN ENTRY' THEN 1 ELSE 0 END) AS today_dry_van,
         SUM(CASE WHEN DATE(created_date) = CURDATE() AND entry_type = 'CARGO TRUCK ENTRY' THEN 1 ELSE 0 END) AS today_cargo
     FROM operations
     {$operationsWhere}
@@ -354,6 +355,7 @@ echo json_encode([
             "rv" => (int) ($stats["today_rv"] ?? 0),
             "others" => (int) ($stats["today_others"] ?? 0),
             "dpc_kdi" => (int) ($stats["today_dpc"] ?? 0),
+            "dry_van" => (int) ($stats["today_dry_van"] ?? 0),
             "cargo_truck" => (int) ($stats["today_cargo"] ?? 0),
         ],
     ],
