@@ -55,7 +55,7 @@ function excel_serial_date(?string $date): ?float
         return null;
     }
 
-    $timestamp = strtotime($date . " 00:00:00");
+    $timestamp = strtotime($date . " 00:00:00 UTC");
     if ($timestamp === false) {
         return null;
     }

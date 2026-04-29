@@ -81,7 +81,7 @@ $result = $stmt->get_result();
                                     </div>
                                     <div class="col-md-6">
                                         <label for="waybill_empty" class="form-label">WAYBILL EMPTY</label>
-                                        <input type="text" class="form-control" id="waybill_empty" name="waybill_empty">
+                                        <input type="text" class="form-control" id="waybill_empty" name="waybill_empty" maxlength="6" inputmode="numeric">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="pullout_location_arrival_date" class="form-label">Pullout Location - Arrival Date</label>
@@ -109,11 +109,11 @@ $result = $stmt->get_result();
                                     </div>
                                     <div class="col-md-12">
                                         <label for="van_alpha" class="form-label">VAN - ALPHA</label>
-                                        <input type="text" class="form-control" id="van_alpha" name="van_alpha">
+                                        <input type="text" class="form-control" id="van_alpha" name="van_alpha" maxlength="4">
                                     </div>
                                     <div class="col-md-12">
                                         <label for="van_number" class="form-label">VAN - NUMBER</label>
-                                        <input type="text" class="form-control" id="van_number" name="van_number">
+                                        <input type="text" class="form-control" id="van_number" name="van_number" maxlength="7" inputmode="numeric">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="withdrawal_date" class="form-label">DATE</label>
@@ -199,7 +199,7 @@ $result = $stmt->get_result();
                                     </div>
                                     <div class="col-md-6">
                                         <label for="waybill" class="form-label">WAYBILL</label>
-                                        <input type="text" class="form-control" id="waybill" name="waybill" required>
+                                        <input type="text" class="form-control" id="waybill" name="waybill" required maxlength="6" inputmode="numeric">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="loading_start_date" class="form-label">LOADING SCHEDULE START DATE</label>
@@ -1460,6 +1460,22 @@ $result = $stmt->get_result();
             }
             if (!values.waybill) {
                 Swal.fire('Missing field', 'Waybill is required.', 'warning');
+                return;
+            }
+            if (values.waybill && !/^\d{6}$/.test(values.waybill)) {
+                Swal.fire('Invalid format', 'Waybill must be exactly 6 digits.', 'warning');
+                return;
+            }
+            if (values.waybill_empty && !/^\d{6}$/.test(values.waybill_empty)) {
+                Swal.fire('Invalid format', 'Waybill (Empty) must be exactly 6 digits.', 'warning');
+                return;
+            }
+            if (values.van_alpha && !/^[A-Za-z]{4}$/.test(values.van_alpha)) {
+                Swal.fire('Invalid format', 'Van Alpha must be exactly 4 letters.', 'warning');
+                return;
+            }
+            if (values.van_number && !/^\d{7}$/.test(values.van_number)) {
+                Swal.fire('Invalid format', 'Van Number must be exactly 7 digits.', 'warning');
                 return;
             }
             if (!values.ph) {

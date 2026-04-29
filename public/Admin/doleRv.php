@@ -23,6 +23,7 @@ $result = $stmt->get_result();
     <link rel="stylesheet" href="assets/DataTables/datatables.min.css">
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="assets/alert/node_modules/sweetalert2/dist/sweetalert2.min.css">
+    <style>#dataEntryForm input[type="text"] { text-transform: uppercase; }</style>
     
 </head>
 
@@ -86,7 +87,7 @@ $result = $stmt->get_result();
                                     </div>
                                     <div class="col-md-12">
                                         <label for="waybill_empty" class="form-label">WAYBILL <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="waybill_empty" name="waybill_empty" required>
+                                        <input type="text" class="form-control" id="waybill_empty" name="waybill_empty" required maxlength="6" inputmode="numeric">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="pullout_location_arrival_date" class="form-label">Pullout Location - Arrival Date <span class="text-danger">*</span></label>
@@ -122,11 +123,11 @@ $result = $stmt->get_result();
                                     </div>
                                     <div class="col-md-12">
                                         <label for="van_alpha" class="form-label">VAN - ALPHA <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="van_alpha" name="van_alpha" required>
+                                        <input type="text" class="form-control" id="van_alpha" name="van_alpha" required maxlength="4">
                                     </div>
                                     <div class="col-md-12">
                                         <label for="van_number" class="form-label">VAN - NUMBER <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="van_number" name="van_number" required>
+                                        <input type="text" class="form-control" id="van_number" name="van_number" required maxlength="7" inputmode="numeric">
                                     </div>
                                     
                                     <div class="col-md-12">
@@ -208,7 +209,7 @@ $result = $stmt->get_result();
                                     </div>
                                     <div class="col-md-12">
                                         <label for="waybill" class="form-label">WAYBILL <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="waybill" name="waybill" required>
+                                        <input type="text" class="form-control" id="waybill" name="waybill" required maxlength="6" inputmode="numeric">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="loading_start_date" class="form-label">LOADING SCHEDULE START DATE <span class="text-danger">*</span></label>
@@ -252,11 +253,11 @@ $result = $stmt->get_result();
                                     </div>
                                     <div class="col-md-6" hidden>
                                         <label for="end_unloading_finish_date" class="form-label">END OF UNLOADING FINISH DATE</label>
-                                        <input type="text" class="form-control" id="end_unloading_finish_date" name="end_unloading_finish_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY" required>
+                                        <input type="text" class="form-control" id="end_unloading_finish_date" name="end_unloading_finish_date" data-manual-date="true" inputmode="numeric" autocomplete="off" placeholder="M/D or M/D/YYYY">
                                     </div>
                                     <div class="col-md-6" hidden>
                                         <label for="end_unloading_finish_time" class="form-label">END OF UNLOADING FINISH TIME</label>
-                                        <input type="text" class="form-control" id="end_unloading_finish_time" name="end_unloading_finish_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM" required>
+                                        <input type="text" class="form-control" id="end_unloading_finish_time" name="end_unloading_finish_time" data-manual-time="true" inputmode="numeric" autocomplete="off" placeholder="HHMM">
                                     </div>
                                     <div class="col-md-12">
                                         <label for="reference_documents" class="form-label">REFERENCE DOCUMENTS</label>
@@ -1067,6 +1068,13 @@ $result = $stmt->get_result();
             }
 
             const form = document.getElementById("dataEntryForm");
+            form.querySelectorAll('input[type="text"]').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    const pos = this.selectionStart;
+                    this.value = this.value.toUpperCase();
+                    this.setSelectionRange(pos, pos);
+                });
+            });
 
             function clearForm() {
                 form.reset();
@@ -1080,6 +1088,22 @@ $result = $stmt->get_result();
                 const values = getValues();
                 if (!values.segment) {
                     Swal.fire('Missing field', 'Segment is required.', 'warning');
+                    return;
+                }
+                if (values.waybill && !/^\d{6}$/.test(values.waybill)) {
+                    Swal.fire('Invalid format', 'Waybill must be exactly 6 digits.', 'warning');
+                    return;
+                }
+                if (values.waybill_empty && !/^\d{6}$/.test(values.waybill_empty)) {
+                    Swal.fire('Invalid format', 'Waybill (Empty) must be exactly 6 digits.', 'warning');
+                    return;
+                }
+                if (values.van_alpha && !/^[A-Za-z]{4}$/.test(values.van_alpha)) {
+                    Swal.fire('Invalid format', 'Van Alpha must be exactly 4 letters.', 'warning');
+                    return;
+                }
+                if (values.van_number && !/^\d{7}$/.test(values.van_number)) {
+                    Swal.fire('Invalid format', 'Van Number must be exactly 7 digits.', 'warning');
                     return;
                 }
 

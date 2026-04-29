@@ -134,6 +134,7 @@
                                         <th>DPC_KDI</th>
                                         <th>Cargo</th>
                                         <th>Dry Van</th>
+                                        <th>Avg Speed <small class="text-muted fw-normal">(entries/day)</small></th>
                                         <th>Last Entry</th>
                                     </tr>
                                 </thead>
@@ -265,6 +266,7 @@
                         String(row.dpc_entries ?? 0),
                         String(row.cargo_entries ?? 0),
                         String(row.dry_van_entries ?? 0),
+                        row.avg_entries_per_day > 0 ? Number(row.avg_entries_per_day).toFixed(2) : '-',
                         formatDateTime(row.last_entry_date)
                     ]);
                 });

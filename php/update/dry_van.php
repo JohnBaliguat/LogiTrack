@@ -36,16 +36,60 @@ function build_dry_van_route_code($location) {
     return strtoupper(trim((string) $location)) === "DICT" ? "PNB" : "DVO";
 }
 
+function get_dry_van_billing_customer($customer) {
+    $map = [
+        "CITIHARDWARE IMPORTS"      => "CTH",
+        "CITIHARDWARE DOMESTIC"     => "CTH",
+        "TPD DRYVAN IMPORT"         => "TPD",
+        "TPD DRYVAN EXPORT"         => "TPD",
+        "ECOSSENTIAL - IMPORT"      => "ECOSSENTIAL",
+        "NOVOCOCONUT - IMPORT"      => "NOVOCOCONUT",
+        "FRANKLIN BAKER - IMPORT"   => "FRANKLIN BAKER",
+        "EYE CARGO - IMPORT"        => "EYE CARGO",
+        "PHIL JDU - IMPORT"         => "JDU",
+        "SOUTHERN HARVEST - IMPORT" => "SOUTHERN HARVEST",
+        "HEADSPORT - IMPORT"        => "HEADSPORT",
+        "AGRI EXIM - IMPORT"        => "AGRI EXIM",
+        "SOLARIS - IMPORT"          => "SOLARIS",
+        "ECOSSENTIAL - EXPORT"      => "ECOSSENTIAL",
+        "NOVOCOCONUT - EXPORT"      => "NOVOCOCONUT",
+        "FRANKLIN BAKER - EXPORT"   => "FRANKLIN BAKER",
+        "EYE CARGO - EXPORT"        => "EYE CARGO",
+        "PHIL JDU - EXPORT"         => "JDU",
+        "SOUTHERN HARVEST - EXPORT" => "SOUTHERN HARVEST",
+        "HEADSPORT - EXPORT"        => "HEADSPORT",
+        "AGRI EXIM - EXPORT"        => "AGRI EXIM",
+        "SOLARIS - EXPORT"          => "SOLARIS",
+    ];
+    return $map[$customer] ?? $customer;
+}
+
 function build_dry_van_billing_sku($customer, $pulloutLocation, $returnLocation) {
     $customer = trim((string) $customer);
     if ($customer === "") {
         return "";
     }
 
+    $billingCustomer = get_dry_van_billing_customer($customer);
     $pullout = build_dry_van_route_code($pulloutLocation);
     $empty = build_dry_van_route_code($returnLocation);
 
-    return "DRY CONTAINER-" . $customer . "-" . $pullout . "-" . $empty;
+    return "Dry Container-" . $billingCustomer . "-" . $pullout . "-" . $empty;
+}
+
+function lookup_dry_van_kms(mysqli $conn, $billing_sku) {
+    if (trim((string) $billing_sku) === "") {
+        return "";
+    }
+    $stmt = $conn->prepare("SELECT sku_rountripDistance FROM sku WHERE TRIM(sku_name) = ? LIMIT 1");
+    if (!$stmt) {
+        return "";
+    }
+    $stmt->bind_param("s", $billing_sku);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    return $row ? trim((string) ($row["sku_rountripDistance"] ?? "")) : "";
 }
 
 $response = ["success" => false, "message" => ""];
@@ -90,7 +134,6 @@ $destination = validate($_POST["destination"] ?? "");
 $gs = validate($_POST["gs"] ?? "");
 $genset_hr_meter_start = validate($_POST["genset_hr_meter_start"] ?? "");
 $genset_hr_meter_end = validate($_POST["genset_hr_meter_end"] ?? "");
-$kms = validate($_POST["kms"] ?? "");
 $booking = validate($_POST["booking"] ?? "");
 $shipment_no = validate($_POST["shipment_no"] ?? "");
 $seal = validate($_POST["seal"] ?? "");
@@ -136,6 +179,7 @@ $modified_by = isset($_SESSION["user_idNumber"])
 $modified_date = date("Y-m-d H:i:s");
 
 $billing_sku = build_dry_van_billing_sku($customer_ph, $pullout_location, $return_location);
+$kms = lookup_dry_van_kms($conn, $billing_sku);
 
 if ($status === "") {
     $response["message"] = "Status is required.";

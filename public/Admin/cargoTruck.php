@@ -20,6 +20,7 @@ $result = $stmt->get_result();
     <link rel="stylesheet" href="assets/DataTables/datatables.min.css">
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>#dataEntryForm input[type="text"] { text-transform: uppercase; }</style>
 </head>
 <body>
     <div class="wrapper">
@@ -80,7 +81,7 @@ $result = $stmt->get_result();
                                     </div>
                                     <div class="col-md-6">
                                         <label for="waybill" class="form-label">WAYBILL <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="waybill" required>
+                                        <input type="text" class="form-control" id="waybill" required maxlength="6" inputmode="numeric">
                                     </div>
                                     <div class="col-md-6 position-relative">
                                         <label for="truck" class="form-label">TRUCK <span class="text-danger">*</span></label>
@@ -247,6 +248,13 @@ $result = $stmt->get_result();
             let allTrucks = [];
             let allLocations = [];
             let selectedSegment = '';
+            form.querySelectorAll('input[type="text"]').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    const pos = this.selectionStart;
+                    this.value = this.value.toUpperCase();
+                    this.setSelectionRange(pos, pos);
+                });
+            });
 
             fetch('php/fetch/get_segment_activity.php')
                 .then(res => res.json())
@@ -660,6 +668,10 @@ $result = $stmt->get_result();
 
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
+                if (waybillInput.value.trim() && !/^\d{6}$/.test(waybillInput.value.trim())) {
+                    Swal.fire('Invalid format', 'Waybill must be exactly 6 digits.', 'warning');
+                    return;
+                }
                 const action = dataIdInput.value ? 'update-cargo-truck' : 'add-cargo-truck';
                 const endpoint = dataIdInput.value ? 'php/update/cargo_truck.php' : 'php/insert/cargo_truck.php';
                 const payload = new FormData();

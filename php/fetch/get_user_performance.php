@@ -30,7 +30,8 @@ $sql = "
         SUM(CASE WHEN o.entry_type = 'DPC_KDs & OPM ENTRY' THEN 1 ELSE 0 END) AS dpc_entries,
         SUM(CASE WHEN o.entry_type = 'CARGO TRUCK ENTRY' THEN 1 ELSE 0 END) AS cargo_entries,
         SUM(CASE WHEN o.entry_type = 'DRY VAN ENTRY' THEN 1 ELSE 0 END) AS dry_van_entries,
-        MAX(o.created_date) AS last_entry_date
+        MAX(o.created_date) AS last_entry_date,
+        ROUND(COUNT(o.entry_id) / NULLIF(COUNT(DISTINCT DATE(o.created_date)), 0), 2) AS avg_entries_per_day
     FROM user u
     LEFT JOIN operations o
         ON o.created_by = u.user_idNumber
@@ -67,6 +68,7 @@ if ($result) {
             "cargo_entries" => (int) ($row["cargo_entries"] ?? 0),
             "dry_van_entries" => (int) ($row["dry_van_entries"] ?? 0),
             "last_entry_date" => $row["last_entry_date"] ?? null,
+            "avg_entries_per_day" => (float) ($row["avg_entries_per_day"] ?? 0),
         ];
     }
 }

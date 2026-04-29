@@ -42,14 +42,15 @@ function master_validate_driver(mysqli $conn, string $driverName, string $driver
 
     $driverIdNumber = trim($driverIdNumber);
 
-    if ($driverIdNumber !== '') {
-        $stmt = $conn->prepare('SELECT 1 FROM drivers WHERE driver_IdNumber = ? LIMIT 1');
-        if (!$stmt) {
-            return null;
-        }
-        $stmt->bind_param('s', $driverIdNumber);
+    if ($driverIdNumber === '') {
+        return null;
     }
 
+    $stmt = $conn->prepare('SELECT 1 FROM drivers WHERE driver_IdNumber = ? LIMIT 1');
+    if (!$stmt) {
+        return null;
+    }
+    $stmt->bind_param('s', $driverIdNumber);
     $stmt->execute();
     $stmt->store_result();
     $ok = $stmt->num_rows > 0;

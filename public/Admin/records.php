@@ -29,15 +29,15 @@
                     </div>
                     <div class="card-body">
                         <form id="recordsFilterForm" class="row g-3 align-items-end">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label for="dateFrom" class="form-label">Date From</label>
                                 <input type="date" class="form-control" id="dateFrom" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label for="dateTo" class="form-label">Date To</label>
                                 <input type="date" class="form-control" id="dateTo" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label for="entryType" class="form-label">Entry Type</label>
                                 <select class="form-select" id="entryType">
                                     <option value="ALL">All Entries</option>
@@ -48,12 +48,18 @@
                                     <option value="CARGO TRUCK ENTRY">Cargo Truck Entry</option>
                                 </select>
                             </div>
-                            <div class="col-md-3 d-flex gap-2">
+                            <div class="col-md-6 d-flex gap-2 flex-wrap">
                                 <button type="button" class="btn btn-outline-primary" id="previewButton">
                                     <i class="bi bi-search me-1"></i>Preview
                                 </button>
                                 <button type="submit" class="btn btn-primary">
                                     <i class="bi bi-file-earmark-excel me-1"></i>Generate Excel
+                                </button>
+                                <a href="#" class="btn btn-outline-secondary" id="downloadTemplateBtn" title="Download CSV template for the selected entry type">
+                                    <i class="bi bi-file-earmark-arrow-down me-1"></i>Template
+                                </a>
+                                <button type="button" class="btn btn-outline-success" id="importDataBtn" title="Import records from a CSV file">
+                                    <i class="bi bi-upload me-1"></i>Import
                                 </button>
                             </div>
                         </form>
@@ -111,6 +117,36 @@
         </div>
     </div>
 
+    <!-- Import Modal -->
+    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importModalLabel"><i class="bi bi-upload me-2"></i>Import Records</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">Upload an Excel file (.xlsx) formatted for <strong id="importEntryTypeLabel">—</strong>. Download the template first if you haven't already.</p>
+                    <div class="mb-3">
+                        <label for="importFileInput" class="form-label">Excel File (.xlsx)</label>
+                        <input type="file" class="form-control" id="importFileInput" accept=".xlsx">
+                    </div>
+                    <div id="importResultAlert" class="d-none"></div>
+                    <div id="importErrorList" class="d-none">
+                        <p class="fw-semibold mb-1">Skipped rows:</p>
+                        <ul id="importErrorItems" class="mb-0 small text-danger"></ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="importSubmitBtn">
+                        <i class="bi bi-upload me-1"></i>Import
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/DataTables/datatables.min.js"></script>
@@ -119,6 +155,107 @@
         $(document).ready(function () {
             $("#rnav").attr({ "class" : "nav-link active" });
         });
+    </script>
+    <script>
+        (function () {
+            const entryTypeInput     = document.getElementById('entryType');
+            const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
+            const importDataBtn      = document.getElementById('importDataBtn');
+            const importModal        = new bootstrap.Modal(document.getElementById('importModal'));
+            const importEntryLabel   = document.getElementById('importEntryTypeLabel');
+            const importFileInput    = document.getElementById('importFileInput');
+            const importSubmitBtn    = document.getElementById('importSubmitBtn');
+            const importResultAlert  = document.getElementById('importResultAlert');
+            const importErrorList    = document.getElementById('importErrorList');
+            const importErrorItems   = document.getElementById('importErrorItems');
+
+            function isSpecificType() {
+                return entryTypeInput.value !== 'ALL';
+            }
+
+            function updateButtons() {
+                const specific = isSpecificType();
+                if (specific) {
+                    const params = new URLSearchParams({ entry_type: entryTypeInput.value });
+                    downloadTemplateBtn.href = 'php/fetch/download_import_template.php?' + params.toString();
+                    downloadTemplateBtn.classList.remove('disabled');
+                    importDataBtn.disabled = false;
+                } else {
+                    downloadTemplateBtn.href = '#';
+                    downloadTemplateBtn.classList.add('disabled');
+                    importDataBtn.disabled = true;
+                }
+            }
+
+            entryTypeInput.addEventListener('change', updateButtons);
+            updateButtons();
+
+            // Prevent clicking disabled template link
+            downloadTemplateBtn.addEventListener('click', function (e) {
+                if (!isSpecificType()) e.preventDefault();
+            });
+
+            // Open import modal
+            importDataBtn.addEventListener('click', function () {
+                importEntryLabel.textContent = entryTypeInput.value;
+                importFileInput.value = '';
+                importResultAlert.className = 'd-none';
+                importResultAlert.textContent = '';
+                importErrorList.classList.add('d-none');
+                importErrorItems.innerHTML = '';
+                importSubmitBtn.disabled = false;
+                importSubmitBtn.innerHTML = '<i class="bi bi-upload me-1"></i>Import';
+                importModal.show();
+            });
+
+            // Submit import
+            importSubmitBtn.addEventListener('click', async function () {
+                if (!importFileInput.files.length) {
+                    importResultAlert.className = 'alert alert-warning';
+                    importResultAlert.textContent = 'Please select an Excel (.xlsx) file.';
+                    return;
+                }
+
+                importSubmitBtn.disabled = true;
+                importSubmitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Importing…';
+                importResultAlert.className = 'd-none';
+                importErrorList.classList.add('d-none');
+                importErrorItems.innerHTML = '';
+
+                const fd = new FormData();
+                fd.append('action', 'import-entries');
+                fd.append('entry_type', entryTypeInput.value);
+                fd.append('xlsx_file', importFileInput.files[0]);
+
+                try {
+                    const res = await fetch('php/insert/import_entries.php', { method: 'POST', body: fd });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        importResultAlert.className = 'alert alert-success';
+                        importResultAlert.textContent = data.message;
+                    } else {
+                        importResultAlert.className = 'alert alert-danger';
+                        importResultAlert.textContent = data.message || 'Import failed.';
+                    }
+
+                    if (data.errors && data.errors.length) {
+                        importErrorList.classList.remove('d-none');
+                        data.errors.forEach(function (e) {
+                            const li = document.createElement('li');
+                            li.textContent = e;
+                            importErrorItems.appendChild(li);
+                        });
+                    }
+                } catch (err) {
+                    importResultAlert.className = 'alert alert-danger';
+                    importResultAlert.textContent = 'Network error: ' + err.message;
+                }
+
+                importSubmitBtn.disabled = false;
+                importSubmitBtn.innerHTML = '<i class="bi bi-upload me-1"></i>Import';
+            });
+        })();
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

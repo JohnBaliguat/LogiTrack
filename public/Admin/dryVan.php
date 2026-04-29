@@ -21,6 +21,7 @@ $result = $stmt->get_result();
     <link rel="stylesheet" href="assets/DataTables/datatables.min.css">
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>#dataEntryForm input[type="text"] { text-transform: uppercase; }</style>
 </head>
 
 <body>
@@ -84,11 +85,11 @@ $result = $stmt->get_result();
                                             </div>
                                             <div class="col-md-6">
                                                 <label for="van_alpha" class="form-label">Van Alpha</label>
-                                                <input type="text" class="form-control" id="van_alpha" name="van_alpha">
+                                                <input type="text" class="form-control" id="van_alpha" name="van_alpha" maxlength="4">
                                             </div>
                                             <div class="col-md-6">
                                                 <label for="van_number" class="form-label">Van Numeric</label>
-                                                <input type="text" class="form-control" id="van_number" name="van_number">
+                                                <input type="text" class="form-control" id="van_number" name="van_number" maxlength="7" inputmode="numeric">
                                             </div>
                                             <div class="col-md-6 position-relative">
                                                 <label for="shipper" class="form-label">Shipping Line</label>
@@ -194,7 +195,7 @@ $result = $stmt->get_result();
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label for="waybill" class="form-label">Waybill No. - Loaded</label>
-                                                        <input type="text" class="form-control" id="waybill" name="waybill">
+                                                        <input type="text" class="form-control" id="waybill" name="waybill" maxlength="6" inputmode="numeric">
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label for="date_hauled" class="form-label">Date Hauled</label>
@@ -243,7 +244,7 @@ $result = $stmt->get_result();
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label for="waybill_empty" class="form-label">Waybill No. - Empty</label>
-                                                        <input type="text" class="form-control" id="waybill_empty" name="waybill_empty">
+                                                        <input type="text" class="form-control" id="waybill_empty" name="waybill_empty" maxlength="6" inputmode="numeric">
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label for="date_returned" class="form-label">Actual Date Returned</label>
@@ -590,6 +591,13 @@ $result = $stmt->get_result();
             let allDrivers = [];
             let allTrucks = [];
             let allTrailers = [];
+            form.querySelectorAll('input[type="text"]').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    const pos = this.selectionStart;
+                    this.value = this.value.toUpperCase();
+                    this.setSelectionRange(pos, pos);
+                });
+            });
 
             // Fetch lookup data
             fetch("php/fetch/get_locations.php")
@@ -1202,6 +1210,24 @@ $result = $stmt->get_result();
                 // Validate status is selected
                 if (!statusSelect.value) {
                     Swal.fire("Error!", "Please select a status.", "error");
+                    return;
+                }
+                if (vanAlphaInput.value && !/^[A-Za-z]{4}$/.test(vanAlphaInput.value)) {
+                    Swal.fire("Invalid format", "Van Alpha must be exactly 4 letters.", "warning");
+                    return;
+                }
+                if (vanNumberInput.value && !/^\d{7}$/.test(vanNumberInput.value)) {
+                    Swal.fire("Invalid format", "Van Number must be exactly 7 digits.", "warning");
+                    return;
+                }
+                const waybillVal = document.getElementById("waybill") ? document.getElementById("waybill").value : "";
+                if (waybillVal && !/^\d{6}$/.test(waybillVal)) {
+                    Swal.fire("Invalid format", "Waybill must be exactly 6 digits.", "warning");
+                    return;
+                }
+                const waybillEmptyVal = document.getElementById("waybill_empty") ? document.getElementById("waybill_empty").value : "";
+                if (waybillEmptyVal && !/^\d{6}$/.test(waybillEmptyVal)) {
+                    Swal.fire("Invalid format", "Waybill (Empty) must be exactly 6 digits.", "warning");
                     return;
                 }
 

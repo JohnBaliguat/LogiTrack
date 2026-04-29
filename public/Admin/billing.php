@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/alert/node_modules/sweetalert2/dist/sweetalert2.min.css">
 </head>
 <body>
     <div class="wrapper">
@@ -27,7 +28,7 @@
                         <h5 class="mb-0"><i class="bi bi-calendar-range me-2"></i>Billing Export Range</h5>
                     </div>
                     <div class="card-body">
-                        <form id="billingForm" class="row g-3 align-items-end">
+                        <form id="billingForm" class="row g-3 align-items-end" novalidate>
                             <div class="col-md-4">
                                 <label for="dateFrom" class="form-label">Date From</label>
                                 <input type="date" class="form-control" id="dateFrom" required>
@@ -75,6 +76,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/js/app.js"></script>
+    <script src="assets/alert/node_modules/sweetalert2/dist/sweetalert2.min.js"></script>
     <script>
         $(document).ready(function () {
             $("#bnav").attr({ "class" : "nav-link active" });
@@ -94,6 +96,22 @@
             const today = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}/${now.getFullYear()}`;
             dateFromInput.value = today;
             dateToInput.value = today;
+
+            function validateDates() {
+                if (!dateFromInput.value) {
+                    Swal.fire('Missing field', 'Please select a Date From.', 'warning');
+                    return false;
+                }
+                if (!dateToInput.value) {
+                    Swal.fire('Missing field', 'Please select a Date To.', 'warning');
+                    return false;
+                }
+                if (dateFromInput.value > dateToInput.value) {
+                    Swal.fire('Invalid range', 'Date From must not be later than Date To.', 'warning');
+                    return false;
+                }
+                return true;
+            }
 
             function buildParams() {
                 return new URLSearchParams({
@@ -120,13 +138,15 @@
             }
 
             previewButton.addEventListener('click', function () {
+                if (!validateDates()) return;
                 loadSummary().catch(error => {
-                    coveredDates.textContent = error.message;
+                    Swal.fire('Error', error.message, 'error');
                 });
             });
 
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
+                if (!validateDates()) return;
                 const url = `php/fetch/export_billing_csv.php?${buildParams().toString()}`;
                 window.location.href = url;
             });

@@ -64,12 +64,7 @@ $created_by = isset($_SESSION["user_idNumber"])
     : "system";
 $created_date = date("Y-m-d H:i:s");
 
-if (empty($segment) || empty($activity)) {
-    $response["message"] = "Segment and Activity are required.";
-    header("Content-Type: application/json");
-    echo json_encode($response);
-    exit();
-}
+
 if (empty($waybill)) {
     $response["message"] = "Waybill is required.";
     header("Content-Type: application/json");
@@ -84,12 +79,6 @@ if (empty($operations)) {
 }
 if (empty($tr)) {
     $response["message"] = "Trailer (TR) is required.";
-    header("Content-Type: application/json");
-    echo json_encode($response);
-    exit();
-}
-if (empty($gs)) {
-    $response["message"] = "Genset (GS) is required.";
     header("Content-Type: application/json");
     echo json_encode($response);
     exit();

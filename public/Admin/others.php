@@ -57,6 +57,7 @@ $result = $stmt->get_result();
     <link rel="stylesheet" href="assets/DataTables/datatables.min.css">
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="assets/alert/node_modules/sweetalert2/dist/sweetalert2.min.css">
+    <style>#dataEntryForm input[type="text"] { text-transform: uppercase; }</style>
 </head>
 <body>
     <div class="wrapper">
@@ -104,14 +105,14 @@ $result = $stmt->get_result();
                                     <div class="col-md-6" hidden>
                                         <div class="mb-3 position-relative">
                                             <label for="segment" class="form-label">Segment</label>
-                                            <input type="text" class="form-control" id="segment" name="segment">
+                                            <input type="text" class="form-control" id="segment" name="segment" value="Hustling">
                                             <ul id="segmentList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                         </div>
                                     </div>
                                     <div class="col-md-6" hidden>
                                         <div class="mb-3 position-relative">
                                             <label for="activity" class="form-label">Activity</label>
-                                            <input type="text" class="form-control" id="activity" name="activity">
+                                            <input type="text" class="form-control" id="activity" name="activity" value="DICT.Hustling (Less 10Vans)">
                                             <ul id="activityList" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
                                         </div>
                                     </div>
@@ -121,7 +122,7 @@ $result = $stmt->get_result();
                                     </div>
                                     <div class="col-md-6">
                                         <label for="waybill" class="form-label">WAYBILL <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="waybill" name="waybill" required>
+                                        <input type="text" class="form-control" id="waybill" name="waybill" required maxlength="6" inputmode="numeric">
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3 position-relative">
@@ -334,6 +335,13 @@ $result = $stmt->get_result();
             let allLocations = [];
             let allTrailers = [];
             let allGensets = [];
+            form.querySelectorAll('input[type="text"]').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    const pos = this.selectionStart;
+                    this.value = this.value.toUpperCase();
+                    this.setSelectionRange(pos, pos);
+                });
+            });
 
             fetch('php/fetch/get_segment_activity.php')
                 .then(res => res.json())
@@ -919,15 +927,6 @@ $result = $stmt->get_result();
 
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
-
-                if (!segmentInput.value.trim()) {
-                    showAlert('Missing field', 'Segment is required.', 'warning');
-                    return;
-                }
-                if (!activityInput.value.trim()) {
-                    showAlert('Missing field', 'Activity is required.', 'warning');
-                    return;
-                }
                 if (!dateInput.value) {
                     showAlert('Missing field', 'Date is required.', 'warning');
                     return;
@@ -936,16 +935,16 @@ $result = $stmt->get_result();
                     showAlert('Missing field', 'Waybill is required.', 'warning');
                     return;
                 }
+                if (!/^\d{6}$/.test(waybillInput.value.trim())) {
+                    showAlert('Invalid format', 'Waybill must be exactly 6 digits.', 'warning');
+                    return;
+                }
                 if (!operationsInput.value.trim()) {
                     showAlert('Missing field', 'Operations / PH (location) is required. Use the location search list.', 'warning');
                     return;
                 }
                 if (!trInput.value.trim()) {
                     showAlert('Missing field', 'Trailer (TR) is required.', 'warning');
-                    return;
-                }
-                if (!gsInput.value.trim()) {
-                    showAlert('Missing field', 'Genset (GS) is required.', 'warning');
                     return;
                 }
                 if (!driverInput.value.trim()) {
